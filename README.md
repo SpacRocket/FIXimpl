@@ -1,6 +1,6 @@
 # ba-thesis
 
-# Build
+## Build
 The project is using Modern CMake for build system generation.
 ### Dependencies:
 Quickfix (With OpenSSL dependency), OpenSSL, Google Test, date (HowardHinnant)
