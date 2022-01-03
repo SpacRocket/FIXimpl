@@ -3,7 +3,7 @@
 # Build
 The project is using Modern CMake for build system generation.
 ### Dependencies:
-Quickfix (With OpenSSL dependency), OpenSSL, Google Test
+Quickfix (With OpenSSL dependency), OpenSSL, Google Test, date (HowardHinnant)
 
 ## External processes
 Bitfinex FIX Gateway (bfxfixgw): for more references visit medium tutorial

@@ -6,6 +6,6 @@
 TEST(AuthenticaitonTest, Logon){
     FIX::BfxClient Client;
     Client.initiator->start();
-    std::this_thread::sleep_for(std::chrono::seconds(10));
-    ASSERT_EQ(Client.initiator->isLoggedOn(), true);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    ASSERT_TRUE(Client.initiator->isLoggedOn());
 }

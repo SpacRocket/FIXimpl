@@ -1,5 +1,6 @@
 find_package(Quickfix REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(date REQUIRED)
 
 add_library(Bfxclient BfxClient.cpp)
 
@@ -10,7 +11,9 @@ endif()
 target_link_libraries(Bfxclient 
     PUBLIC Quickfix::Quickfix
     PRIVATE OpenSSL::SSL
-    PRIVATE OpenSSL::Crypto)
+    PRIVATE OpenSSL::Crypto
+    PUBLIC date::date
+    )
 
 target_include_directories(Bfxclient
     PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
@@ -19,6 +22,7 @@ target_include_directories(Bfxclient
     PUBLIC Quickfix::Quickfix
     PRIVATE OpenSSL::SSL
     PRIVATE OpenSSL::Crypto
+    PUBLIC date::date
     )
 
 target_sources(Bfxclient
