@@ -7,7 +7,8 @@ namespace FIX {
 // ToDo: Write proper destructor
 BfxApplication::~BfxApplication() {}
 
-BfxApplication::BfxApplication() : gen(rd) {}
+BfxApplication::BfxApplication() : gen(time(nullptr)){
+}
 
 void BfxApplication::onCreate(const SessionID &sessionID) {
   std::cout << "Session created - Session: " << sessionID.toString() << "\n";
@@ -51,27 +52,6 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
 
 SessionID BfxApplication::getOrderSessionID() { return orderSessionID; }
 
-void BfxApplication::BsMethod() {
-  /*
-      const FIX::ClOrdID& aClOrdID,
-      const FIX::HandlInst& aHandlInst,
-      const FIX::Symbol& aSymbol,
-      const FIX::Side& aSide,
-      const FIX::TransactTime& aTransactTime,
-      const FIX::OrdType& aOrdType )
-  */
-  // ToDo: Incorporate date to the ClOrdID
-
-  FIX42::NewOrderSingle order{FIX::ClOrdID(std::to_string(intDist(gen))),
-                              FIX::HandlInst(2),
-                              FIX::Symbol("btcusd"),
-                              FIX::Side(1),
-                              getCurrentTransactTime(),
-                              FIX::OrdType()};
-
-  // Session::sendToTarget(, getOrderSessionID());
-}
-
 // Helper methods
 
 FIX::TransactTime BfxApplication::getCurrentTransactTime() {
@@ -86,6 +66,10 @@ FIX::TransactTime BfxApplication::getCurrentTransactTime() {
   transactTime.setString(currentTime.str());
 
   return transactTime;
+}
+
+FIX::ClOrdID BfxApplication::getCl0rdID(){
+  return FIX::ClOrdID(std::to_string(intDist(gen)));
 }
 
 }  // namespace FIX

@@ -3,7 +3,7 @@ find_library(Bfxclient ./.. REQUIRED)
 
 enable_testing()
 
-add_executable(Bfxclient_UnitTest AuthenticationTest.cpp)
+add_executable(Bfxclient_UnitTest BfxClientTests.cpp)
 
 target_link_libraries(Bfxclient_UnitTest PUBLIC GTest::Main
                                          PUBLIC Bfxclient)

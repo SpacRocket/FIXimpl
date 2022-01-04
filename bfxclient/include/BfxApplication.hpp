@@ -19,6 +19,8 @@
 #include "date/tz.h"
 #include "date/date.h"
 
+#include "OrderTypes.hpp"
+
 namespace FIX {
 /**
  * @brief Collection of callbacks for session/messages.
@@ -27,7 +29,7 @@ class BfxApplication : public FIX::NullApplication,
                        public FIX::MessageCracker
 {
 public:
-  BfxApplication() {};
+  BfxApplication();
   virtual ~BfxApplication();
 
   FIX::SessionID getOrderSessionID();
@@ -37,15 +39,14 @@ public:
   FIX::SessionSettings settings;
 
 //helpers
-  FIX::TransactTime getCurrentTransactTime();
+  static FIX::TransactTime getCurrentTransactTime();
+  static FIX::ClOrdID getCl0rdID();
 
 protected:
   FIX::SessionID orderSessionID;
 
-  //CL0RDID generation.
-  std::random_device rd;
-  std::mt19937 gen;
-  std::uniform_int_distribution<> intDist{0, INT32_MAX};
+  static std::mt19937 gen;
+  std::uniform_int_distribution<int32_t> intDist{0, INT32_MAX};
 
 private:
   /// Notification of a session begin created
@@ -64,18 +65,12 @@ private:
   EXCEPT ( FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon ) override;
   /// Notification of app message being received from target
   virtual void fromApp( const FIX::Message&, const FIX::SessionID& )
-  EXCEPT ( FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType ) override;
+  EXCEPT ( FIX::FieldNotFound, FIX::IncorrectDataFormat, 
+           FIX::IncorrectTagValue, FIX::UnsupportedMessageType ) override;  
 
-//OnMessage
+  void onMessage( const FIX42::ExecutionReport&, const FIX::SessionID& );
+  void onMessage( const FIX42::OrderCancelReject&, const FIX::SessionID& );
 
-//MarketTypes
-
-//queryHeaderVersionActionConfirm
-
-//Fields like SenderComp, etc.
 };
 
 }
-
-/* ToDo: Incorporate id to the orderid
-*/
