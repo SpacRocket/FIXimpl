@@ -45,8 +45,8 @@ public:
 protected:
   FIX::SessionID orderSessionID;
 
-  static std::mt19937 gen;
-  std::uniform_int_distribution<int32_t> intDist{0, INT32_MAX};
+  static std::optional<std::mt19937> gen;
+  static std::optional<std::uniform_int_distribution<int>> intDist;
 
 private:
   /// Notification of a session begin created

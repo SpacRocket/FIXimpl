@@ -7,7 +7,16 @@ namespace FIX {
 // ToDo: Write proper destructor
 BfxApplication::~BfxApplication() {}
 
-BfxApplication::BfxApplication() : gen(time(nullptr)){
+BfxApplication::BfxApplication(){
+  
+  //Boilerplate
+  if(BfxApplication::gen.has_value() == false){
+   BfxApplication::gen = std::mt19937(time(nullptr));
+  }
+  if(BfxApplication::intDist.has_value() == false){
+    BfxApplication::intDist = std::uniform_int_distribution<int>(0, INT_MAX);
+  }
+
 }
 
 void BfxApplication::onCreate(const SessionID &sessionID) {
@@ -53,7 +62,6 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
 SessionID BfxApplication::getOrderSessionID() { return orderSessionID; }
 
 // Helper methods
-
 FIX::TransactTime BfxApplication::getCurrentTransactTime() {
   using namespace std::chrono;
   using date::operator<<;
@@ -69,7 +77,10 @@ FIX::TransactTime BfxApplication::getCurrentTransactTime() {
 }
 
 FIX::ClOrdID BfxApplication::getCl0rdID(){
-  return FIX::ClOrdID(std::to_string(intDist(gen)));
+  if(BfxApplication::gen.has_value() && BfxApplication::intDist.has_value()){
+  return FIX::ClOrdID(std::to_string(BfxApplication::intDist.value()(BfxApplication::gen.value())));
+  }
+  return FIX::ClOrdID();
 }
 
 }  // namespace FIX
