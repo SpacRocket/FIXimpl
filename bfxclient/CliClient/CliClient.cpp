@@ -15,7 +15,7 @@ int main( int argc, char** argv )
   {
     FIX::BfxClient Client;
     Client.initiator->start();
-    
+    Client.application.run(); 
     Client.initiator->stop();
 
     return 0;

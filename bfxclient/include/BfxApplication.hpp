@@ -11,6 +11,8 @@
 
 #include "quickfix/fix42/Logon.h"
 #include "quickfix/fix42/NewOrderSingle.h"
+#include "quickfix/fix42/OrderCancelRequest.h"
+#include "quickfix/fix42/OrderCancelReplaceRequest.h"
 
 #include <cstdlib>
 
@@ -39,13 +41,39 @@ public:
   FIX::SessionSettings settings;
 
 //cli
+public:
   void run();
+private:
+  char queryAction();
+  bool queryConfirm( const std::string& query );
+  void queryHeader( FIX::Header& header );
+
   void queryEnterOrder();
+  FIX42::NewOrderSingle queryNewOrderSingle42();
+  FIX42::OrderCancelRequest queryOrderCancelRequest42();
+  FIX42::OrderCancelReplaceRequest queryCancelReplaceRequest42();
+
   void queryCancelOrder();
   void queryReplaceOrder();
   void queryMarketDataRequest();
 
+  bool queryConfirm( const std::string& query );
+
+  FIX::SenderCompID querySenderCompID();
+  FIX::TargetCompID queryTargetCompID();
+  FIX::TargetSubID queryTargetSubID();
+  FIX::ClOrdID queryClOrdID();
+  FIX::OrigClOrdID queryOrigClOrdID();
+  FIX::Symbol querySymbol();
+  FIX::Side querySide();
+  FIX::OrderQty queryOrderQty();
+  FIX::OrdType queryOrdType();
+  FIX::Price queryPrice();
+  FIX::StopPx queryStopPx();
+  FIX::TimeInForce queryTimeInForce();
+
 //helpers
+public:
   static FIX::TransactTime getCurrentTransactTime();
   static FIX::ClOrdID getCl0rdID();
 
