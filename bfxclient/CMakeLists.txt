@@ -30,3 +30,4 @@ target_sources(Bfxclient
 )   
 
 add_subdirectory(test)
+add_subdirectory(CliClient)

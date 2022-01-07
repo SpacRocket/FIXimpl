@@ -1,5 +1,4 @@
 find_package(GTest REQUIRED)
-find_library(Bfxclient ./.. REQUIRED)
 
 enable_testing()
 

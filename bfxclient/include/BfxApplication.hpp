@@ -38,15 +38,23 @@ public:
 
   FIX::SessionSettings settings;
 
+//cli
+  void run();
+  void queryEnterOrder();
+  void queryCancelOrder();
+  void queryReplaceOrder();
+  void queryMarketDataRequest();
+
 //helpers
   static FIX::TransactTime getCurrentTransactTime();
   static FIX::ClOrdID getCl0rdID();
 
+
+  inline static std::optional<std::mt19937> gen;
+  inline static std::optional<std::uniform_int_distribution<int>> intDist;
+
 protected:
   FIX::SessionID orderSessionID;
-
-  static std::optional<std::mt19937> gen;
-  static std::optional<std::uniform_int_distribution<int>> intDist;
 
 private:
   /// Notification of a session begin created
@@ -68,8 +76,8 @@ private:
   EXCEPT ( FIX::FieldNotFound, FIX::IncorrectDataFormat, 
            FIX::IncorrectTagValue, FIX::UnsupportedMessageType ) override;  
 
-  void onMessage( const FIX42::ExecutionReport&, const FIX::SessionID& );
-  void onMessage( const FIX42::OrderCancelReject&, const FIX::SessionID& );
+  void onMessage( const FIX42::ExecutionReport&, const FIX::SessionID& ){}
+  void onMessage( const FIX42::OrderCancelReject&, const FIX::SessionID& ){}
 
 };
 

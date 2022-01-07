@@ -4,10 +4,7 @@
 #include <thread>
 
 TEST(AuthenticaitonTest, Logon){
-    FIX::BfxClient Client;
-    Client.initiator->start();
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-    ASSERT_TRUE(Client.initiator->isLoggedOn());
+
 }
 
 TEST(OrderTest, Order){
@@ -24,6 +21,7 @@ TEST(OrderTest, Order){
             cl.application.getCurrentTransactTime(),
             FIX::OrdType((int)FIX::OrderType::Limit),
         };
+
         order.setField(FIX::OrderQty(0.0005));
 
         FIX::Session::sendToTarget(order, cl.application.getOrderSessionID());
