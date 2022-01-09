@@ -25,11 +25,11 @@ void BfxApplication::onCreate(const SessionID &sessionID) {
 };
 
 void BfxApplication::onLogon(const SessionID &sessionID) {
-  std::cout << "Logon - Session: " << sessionID.toString() << "\n";
+  std::cout << GREEN << "Logon - Session: " << RESET << sessionID.toString() << "\n";
 }
 
 void BfxApplication::onLogout(const SessionID &sessionID) {
-  std::cout << "Logout - Session: " << sessionID.toString() << "\n";
+  std::cout << RED << "Logout - Session: " << RESET << sessionID.toString() << "\n";
 }
 
 void BfxApplication::toAdmin(Message &message, const SessionID &sessionID) {

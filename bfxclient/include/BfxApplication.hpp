@@ -22,6 +22,7 @@
 #include "date/date.h"
 
 #include "OrderTypes.hpp"
+#include "Misc.hpp"
 
 namespace FIX {
 /**
@@ -57,8 +58,6 @@ private:
   void queryReplaceOrder();
   void queryMarketDataRequest();
 
-  bool queryConfirm( const std::string& query );
-
   FIX::SenderCompID querySenderCompID();
   FIX::TargetCompID queryTargetCompID();
   FIX::TargetSubID queryTargetSubID();
@@ -85,6 +84,7 @@ protected:
   FIX::SessionID orderSessionID;
 
 private:
+//--- Message Handlers ---
   /// Notification of a session begin created
   virtual void onCreate( const FIX::SessionID& ) override;
   /// Notification of a session successfully logging on
@@ -106,6 +106,10 @@ private:
 
   void onMessage( const FIX42::ExecutionReport&, const FIX::SessionID& ){}
   void onMessage( const FIX42::OrderCancelReject&, const FIX::SessionID& ){}
+  void onMessage( const FIX42::Reject&, const FIX::SessionID& ){}
+  void onMessage( const FIX42::Heartbeat&, const FIX::SessionID& ){}
+  void onMessage( const FIX42::AllocationInstructionAck&, const FIX::SessionID& ){}
+  void onMessage( const FIX42::Allocation&, const FIX::SessionID& ){}
 
 };
 
