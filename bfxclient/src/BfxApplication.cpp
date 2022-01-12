@@ -20,7 +20,7 @@ BfxApplication::BfxApplication(){
 }
 
 void BfxApplication::onCreate(const SessionID &sessionID) {
-  std::cout << "Session created - Session: " << sessionID.toString() << "\n";
+  std::cout << YELLOW << "Session created - Session: " << RESET << sessionID.toString() << "\n";
   orderSessionID = sessionID;
 };
 
@@ -50,7 +50,6 @@ void BfxApplication::toApp(Message &message, const SessionID &sessionID)
 void BfxApplication::fromAdmin(const Message &message,
                                const SessionID &sessionID)
     EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon) {
-
 }
 
 void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
@@ -58,6 +57,7 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
            UnsupportedMessageType) {
   crack(message, sessionID);
 }
+
 void BfxApplication::run() {
     while ( true )
   {
@@ -264,19 +264,21 @@ void BfxApplication::queryEnterOrder() {
   std::cout << "\nNewOrderSingle\n";
   FIX::Message order;
   
-  order = queryNewOrderSingle42();
+  order = queryNewOrderSingle44();
 
   if ( queryConfirm( "Send order" ) )
     FIX::Session::sendToTarget( order ); 
 }
 
-FIX42::NewOrderSingle BfxApplication::queryNewOrderSingle42() {
+FIX44::NewOrderSingle BfxApplication::queryNewOrderSingle44() {
   FIX::OrdType ordType;
 
-  FIX42::NewOrderSingle newOrderSingle(
-    queryClOrdID(), FIX::HandlInst( '1' ), querySymbol(), querySide(),
+  FIX44::NewOrderSingle newOrderSingle(
+    queryClOrdID(), querySide(),
     FIX::TransactTime(), ordType = queryOrdType() );
 
+  newOrderSingle.set( FIX::HandlInst('1') );
+  newOrderSingle.set( querySymbol() );
   newOrderSingle.set( queryOrderQty() );
   newOrderSingle.set( queryTimeInForce() );
   if ( ordType == FIX::OrdType_LIMIT || ordType == FIX::OrdType_STOP_LIMIT )
@@ -288,31 +290,32 @@ FIX42::NewOrderSingle BfxApplication::queryNewOrderSingle42() {
   return newOrderSingle;
 }
 
-FIX42::OrderCancelRequest BfxApplication::queryOrderCancelRequest42() {
-    FIX42::OrderCancelRequest orderCancelRequest( queryOrigClOrdID(),
-      queryClOrdID(), querySymbol(), querySide(), FIX::TransactTime() );
+FIX44::OrderCancelRequest BfxApplication::queryOrderCancelRequest44() {
+  FIX44::OrderCancelRequest orderCancelRequest( queryOrigClOrdID(),
+      queryClOrdID(), querySide(), FIX::TransactTime() );
 
+  orderCancelRequest.set( querySymbol() );
   orderCancelRequest.set( queryOrderQty() );
   queryHeader( orderCancelRequest.getHeader() );
   return orderCancelRequest;
 }
 
-FIX42::OrderCancelReplaceRequest BfxApplication::queryCancelReplaceRequest42() {
-  FIX::OrdType ordType;
+FIX44::OrderCancelReplaceRequest BfxApplication::queryCancelReplaceRequest44() {
 
-  FIX42::NewOrderSingle newOrderSingle(
-    queryClOrdID(), FIX::HandlInst( '1' ), querySymbol(), querySide(),
-    FIX::TransactTime(), ordType = queryOrdType() );
+  FIX44::OrderCancelReplaceRequest cancelReplaceRequest(
+    queryOrigClOrdID(), queryClOrdID(),
+    querySide(), FIX::TransactTime(), queryOrdType() );
 
-  newOrderSingle.set( queryOrderQty() );
-  newOrderSingle.set( queryTimeInForce() );
-  if ( ordType == FIX::OrdType_LIMIT || ordType == FIX::OrdType_STOP_LIMIT )
-    newOrderSingle.set( queryPrice() );
-  if ( ordType == FIX::OrdType_STOP || ordType == FIX::OrdType_STOP_LIMIT )
-    newOrderSingle.set( queryStopPx() );
+  cancelReplaceRequest.set( FIX::HandlInst('1') );
+  cancelReplaceRequest.set( querySymbol() );
+  if ( queryConfirm( "New price" ) )
+    cancelReplaceRequest.set( queryPrice() );
+  if ( queryConfirm( "New quantity" ) )
+    cancelReplaceRequest.set( queryOrderQty() );
 
-  queryHeader( newOrderSingle.getHeader() );
-  return newOrderSingle;
+  queryHeader( cancelReplaceRequest.getHeader() );
+  return cancelReplaceRequest;
+  
 }
 
 void BfxApplication::queryMarketDataRequest() {

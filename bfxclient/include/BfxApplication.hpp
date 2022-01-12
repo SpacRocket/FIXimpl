@@ -9,10 +9,12 @@
 #include "quickfix/SessionState.h"
 #include "quickfix/SessionFactory.h"
 
-#include "quickfix/fix42/Logon.h"
-#include "quickfix/fix42/NewOrderSingle.h"
-#include "quickfix/fix42/OrderCancelRequest.h"
-#include "quickfix/fix42/OrderCancelReplaceRequest.h"
+#include "quickfix/fix44/Logon.h"
+#include "quickfix/fix44/NewOrderSingle.h"
+#include "quickfix/fix44/OrderCancelRequest.h"
+#include "quickfix/fix44/OrderCancelReplaceRequest.h"
+#include "quickfix/fix44/PositionReport.h"
+#include "quickfix/fix44/AllocationReport.h"
 
 #include <cstdlib>
 
@@ -50,9 +52,9 @@ private:
   void queryHeader( FIX::Header& header );
 
   void queryEnterOrder();
-  FIX42::NewOrderSingle queryNewOrderSingle42();
-  FIX42::OrderCancelRequest queryOrderCancelRequest42();
-  FIX42::OrderCancelReplaceRequest queryCancelReplaceRequest42();
+  FIX44::NewOrderSingle queryNewOrderSingle44();
+  FIX44::OrderCancelRequest queryOrderCancelRequest44();
+  FIX44::OrderCancelReplaceRequest queryCancelReplaceRequest44();
 
   void queryCancelOrder();
   void queryReplaceOrder();
@@ -104,12 +106,14 @@ private:
   EXCEPT ( FIX::FieldNotFound, FIX::IncorrectDataFormat, 
            FIX::IncorrectTagValue, FIX::UnsupportedMessageType ) override;  
 
-  void onMessage( const FIX42::ExecutionReport&, const FIX::SessionID& ){}
-  void onMessage( const FIX42::OrderCancelReject&, const FIX::SessionID& ){}
-  void onMessage( const FIX42::Reject&, const FIX::SessionID& ){}
-  void onMessage( const FIX42::Heartbeat&, const FIX::SessionID& ){}
-  void onMessage( const FIX42::AllocationInstructionAck&, const FIX::SessionID& ){}
-  void onMessage( const FIX42::Allocation&, const FIX::SessionID& ){}
+  void onMessage( const FIX44::ExecutionReport&, const FIX::SessionID& ){}
+  void onMessage( const FIX44::OrderCancelReject&, const FIX::SessionID& ){}
+  void onMessage( const FIX44::Reject&, const FIX::SessionID& ){}
+  void onMessage( const FIX44::Heartbeat&, const FIX::SessionID& ){}
+  void onMessage( const FIX44::AllocationInstructionAck&, const FIX::SessionID& ){}
+  void onMessage( const FIX44::AllocationReport&, const FIX::SessionID& ){}
+  void onMessage( const FIX44::PositionReport&, const FIX::SessionID& ){}
+  void onMessage( const FIX44::Logon&, const FIX::SessionID& ){}
 
 };
 
