@@ -114,6 +114,7 @@ private:
   void onMessage( const FIX44::AllocationReport&, const FIX::SessionID& ){}
   void onMessage( const FIX44::PositionReport&, const FIX::SessionID& ){}
   void onMessage( const FIX44::Logon&, const FIX::SessionID& ){}
+  void onMessage( const FIX44::PositionReport, const FIX::SessionID& );
 
 };
 

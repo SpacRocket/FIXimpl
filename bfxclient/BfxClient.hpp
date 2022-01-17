@@ -26,10 +26,6 @@ enum class SSLMode { None, SSL, SSL_ST};
 
 /**
  * @brief Collection of all the things required for working QuickFix Initiator.
- * 
- * Class could be derived for different types of initiators like SSL, SSL-ST.
- * It's a class that it's aiming for fast implementation since all members are public.
- * TODO: Make it more safe.
  */
 class BfxClient {
     
@@ -50,10 +46,5 @@ public:
         FIX::Initiator* initiator;
         std::optional<FIX::FileStoreFactory> storeFactory;
         std::optional<FIX::ScreenLogFactory> logFactory;
-
-protected:
-private:
-
-};
-
+}; //End of BfxClient
 }

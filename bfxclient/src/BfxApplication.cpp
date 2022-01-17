@@ -57,6 +57,10 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
            UnsupportedMessageType) {
   crack(message, sessionID);
 }
+void BfxApplication::onMessage( const FIX44::PositionReport, const FIX::SessionID& )
+{ 
+
+}
 
 void BfxApplication::run() {
     while ( true )
@@ -80,6 +84,7 @@ void BfxApplication::run() {
     }
   }
 }
+  
 char BfxApplication::queryAction() {
   char value;
   std::cout << std::endl

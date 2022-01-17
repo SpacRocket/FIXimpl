@@ -30,4 +30,5 @@ target_sources(Bfxclient
 )   
 
 add_subdirectory(test)
-add_subdirectory(CliClient)
+add_subdirectory(interfaces/cli)
+add_subdirectory(interfaces/qRPC)
