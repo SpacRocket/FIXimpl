@@ -1,0 +1,16 @@
+syntax = "proto2"; 
+
+service BfxClient {
+    rpc SendNewSingleOrderRequest (NewOrderSingleRequest) returns (NewOrderSingleResponse) {}
+  }
+
+message NewOrderSingleRequest {
+  required string symbol = 1;
+  required float quantity = 2;
+  required string side = 3;
+  required string Cl0rdID = 4;
+}
+
+message NewOrderSingleResponse {
+  required string OrdStatus = 1;
+}

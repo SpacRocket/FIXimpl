@@ -37,6 +37,7 @@ public:
         #ifdef HAVE_SSL
         /** @brief Setups member components */
         BfxClient(std::string configFilePath, FIX::SSLMode mode = FIX::SSLMode::None);
+        BfxClient(bool logging);
         #endif
 
 //Components
