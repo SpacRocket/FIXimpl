@@ -1,20 +1,29 @@
-#include "gtest/gtest.h"
-#include "BfxClient.hpp"
-#include "Fixtures.hpp"
 #include <chrono>
 #include <thread>
 
-FIX::BfxClient Client;
+#include "Fixtures.hpp"
+#include "gtest/gtest.h"
 
-TEST(Startup, Connection){
-    FIX::BfxClient Client;
-    Client.initiator->start();
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-    ASSERT_EQ(true, Client.initiator->isLoggedOn());
-    EXPECT_TRUE(false) << "Tip: The gateway might be not running.";
+TEST(Startup, Connection) {
+  FIX::BfxClient Client;
+  Client.initiator->start();
+
+  using std::chrono::duration;
+  using std::chrono::high_resolution_clock;
+  using std::chrono::seconds;
+
+  auto t1{high_resolution_clock::now()};
+  seconds maxWaitingTime{7};
+  duration<double> dur;
+
+  do {
+    auto t2 = high_resolution_clock::now();
+    dur = t2 - t1;
+
+  } while (!Client.initiator->isLoggedOn() && dur < maxWaitingTime);
+  ASSERT_TRUE(Client.initiator->isLoggedOn());
 }
 
-TEST(SendingMessages, NewOrderSingleBTC){
-    FIX::BfxClient Client;
-    Client.initiator->start();
+TEST_F(SimpleMessages, NewOrderSingleBTC) {
+    
 }
