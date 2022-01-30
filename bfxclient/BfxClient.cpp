@@ -56,7 +56,6 @@ FIX::BfxClient::BfxClient(bool logging) {
   }
 }
 
-// ToDo: Better code
 FIX::BfxClient::~BfxClient() {}
 
 #ifdef HAVE_SSL

@@ -37,7 +37,8 @@ public:
   BfxApplication();
   virtual ~BfxApplication();
 
-  FIX::SessionID getOrderSessionID();
+  FIX::SessionID getOrderSessionID() {return orderSessionID;}
+  FIX::SessionID getMarketSessionID() {return marketSessionID;}
 
   void BsMethod();
 
@@ -84,6 +85,7 @@ public:
 
 protected:
   FIX::SessionID orderSessionID;
+  FIX::SessionID marketSessionID;
 
 private:
 //--- Message Handlers ---
@@ -101,12 +103,12 @@ private:
   /// Notification of admin message being received from target
   virtual void fromAdmin( const FIX::Message&, const FIX::SessionID& )
   EXCEPT ( FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon ) override;
-  /// Notification of app message being received from target
+/// Notification of app message being received from target
   virtual void fromApp( const FIX::Message&, const FIX::SessionID& )
   EXCEPT ( FIX::FieldNotFound, FIX::IncorrectDataFormat, 
            FIX::IncorrectTagValue, FIX::UnsupportedMessageType ) override;  
 
-  void onMessage( const FIX44::ExecutionReport&, const FIX::SessionID& ){}
+  void onMessage( const FIX44::ExecutionReport&, const FIX::SessionID& );
   void onMessage( const FIX44::OrderCancelReject&, const FIX::SessionID& ){}
   void onMessage( const FIX44::Reject&, const FIX::SessionID& ){}
   void onMessage( const FIX44::Heartbeat&, const FIX::SessionID& ){}
@@ -115,7 +117,6 @@ private:
   void onMessage( const FIX44::PositionReport&, const FIX::SessionID& ){}
   void onMessage( const FIX44::Logon&, const FIX::SessionID& ){}
   void onMessage( const FIX44::PositionReport, const FIX::SessionID& );
-
 };
 
-}
+} //End of FIX namespace

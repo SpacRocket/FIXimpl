@@ -5,8 +5,8 @@
 #include "gtest/gtest.h"
 
 TEST(Startup, Connection) {
-  FIX::BfxClient Client;
-  Client.initiator->start();
+  FIX::BfxClient client;
+  client.initiator->start();
 
   using std::chrono::duration;
   using std::chrono::high_resolution_clock;
@@ -20,10 +20,14 @@ TEST(Startup, Connection) {
     auto t2 = high_resolution_clock::now();
     dur = t2 - t1;
 
-  } while (!Client.initiator->isLoggedOn() && dur < maxWaitingTime);
-  ASSERT_TRUE(Client.initiator->isLoggedOn());
+  } while (!client.initiator->isLoggedOn() && dur < maxWaitingTime);
+  ASSERT_TRUE(client.initiator->isLoggedOn());
 }
 
 TEST_F(SimpleMessages, NewOrderSingleBTC) {
-    
+  FIX44::NewOrderSingle message;
+  FIX::Session::sendToTarget(message, client.application.getMarketSessionID());
+  //Interpret the data received.
+
+  
 }

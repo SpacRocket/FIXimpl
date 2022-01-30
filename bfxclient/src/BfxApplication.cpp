@@ -1,6 +1,14 @@
+#pragma once
 #include "BfxApplication.hpp"
 
 #include "quickfix/Session.h"
+
+#ifdef HAVE_POSTGRESQL
+#include "quickfix/PostgreSQLConnection.h"
+#include "quickfix/PostgreSQLLog.h"
+#include "quickfix/PostgreSQLStore.h"
+#endif
+
 
 namespace FIX {
 
@@ -21,7 +29,18 @@ BfxApplication::BfxApplication(){
 
 void BfxApplication::onCreate(const SessionID &sessionID) {
   std::cout << YELLOW << "Session created - Session: " << RESET << sessionID.toString() << "\n";
+
+  if(sessionID.getTargetCompID() == FIX::TargetCompID("BFXFIX") && 
+     sessionID.getSenderCompID() == FIX::SenderCompID("EXORG_ORD"))
+  {
   orderSessionID = sessionID;
+  }
+  else if(sessionID.getTargetCompID() == FIX::TargetCompID("BFXFIX") && 
+     sessionID.getSenderCompID() == FIX::SenderCompID("EXORG_ORD"))
+  {
+  marketSessionID = sessionID;
+  }
+
 };
 
 void BfxApplication::onLogon(const SessionID &sessionID) {
@@ -57,9 +76,15 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
            UnsupportedMessageType) {
   crack(message, sessionID);
 }
+
 void BfxApplication::onMessage( const FIX44::PositionReport, const FIX::SessionID& )
 { 
+}
 
+void BfxApplication::onMessage( const FIX44::ExecutionReport&, const FIX::SessionID& )
+{ 
+  //A structure of an order is being sent to the database
+  
 }
 
 void BfxApplication::run() {
@@ -330,8 +355,6 @@ void BfxApplication::queryMarketDataRequest() {
 void BfxApplication::queryReplaceOrder() {
   
 }
-
-SessionID BfxApplication::getOrderSessionID() { return orderSessionID; }
 
 // Helper methods
 FIX::TransactTime BfxApplication::getCurrentTransactTime() {
