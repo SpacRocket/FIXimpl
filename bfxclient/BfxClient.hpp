@@ -28,6 +28,7 @@ enum class SSLMode { None, SSL, SSL_ST};
 /**
  * @brief Collection of all the things required for working QuickFix Initiator.
  */
+template <class T = BfxApplication>
 class BfxClient {
     
 public:
@@ -43,7 +44,7 @@ public:
 
 //Components
         FIX::SessionSettings settings;
-        FIX::BfxApplication application;
+        T application;
 
         FIX::Initiator* initiator;
         std::optional<FIX::FileStoreFactory> storeFactory;
@@ -52,7 +53,8 @@ public:
 }
 
 // Constructors
-FIX::BfxClient::BfxClient() {
+template <class T>
+FIX::BfxClient<T>::BfxClient() {
   const char* bfxconf{std::getenv("BFX_CLIENT_CONF")};
   if (bfxconf == nullptr) {
     throw FIX::ConfigError(
@@ -69,7 +71,8 @@ FIX::BfxClient::BfxClient() {
                                        settings, logFactory.value());
 }
 
-FIX::BfxClient::BfxClient(bool logging) {
+template <class T>
+FIX::BfxClient<T>::BfxClient(bool logging) {
   const char* bfxconf{std::getenv("BFX_CLIENT_CONF")};
   if (bfxconf == nullptr) {
     throw FIX::ConfigError(
@@ -92,10 +95,12 @@ FIX::BfxClient::BfxClient(bool logging) {
   }
 }
 
-FIX::BfxClient::~BfxClient() {}
+template <class T>
+FIX::BfxClient<T>::~BfxClient() {}
 
 #ifdef HAVE_SSL
-FIX::BfxClient::BfxClient::BfxClient(std::string configFilePath,
+template <class T>
+FIX::BfxClient<T>::BfxClient::BfxClient(std::string configFilePath,
                                      FIX::SSLMode mode) {
   settings = FIX::SessionSettings(configFilePath);
 

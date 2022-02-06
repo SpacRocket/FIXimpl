@@ -29,7 +29,7 @@ class MessagingTest : public ::testing::Test {
   }
   // void TearDown() override {}
 public:
-  FIX::BfxClient client;
+  FIX::BfxClient<> client;
 };
 
 class SimpleMessages : public MessagingTest{};

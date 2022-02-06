@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 
 TEST(Startup, Connection) {
-  FIX::BfxClient client;
+  FIX::BfxClient<> client;
   client.initiator->start();
 
   using std::chrono::duration;
