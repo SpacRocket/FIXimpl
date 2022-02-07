@@ -16,5 +16,3 @@ if (CMAKE_CXX_CPPCHECK)
 endif()
 
 add_subdirectory(bfxclient)
-
-add_executable(bat main.cpp)
