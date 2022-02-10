@@ -1,7 +1,7 @@
 # ba-thesis
 
 ## Build
-The project is using Modern CMake for build system generation.
+The project is using Modern CMake for build system generation. Each part is developed as separate component and follows flat structure.
 ### Dependencies:
 Quickfix (With OpenSSL dependency), OpenSSL, Google Test, date (HowardHinnant),
 qRPC, cppcheck

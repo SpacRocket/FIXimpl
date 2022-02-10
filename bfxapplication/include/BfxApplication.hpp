@@ -35,53 +35,20 @@ class BfxApplication : public FIX::NullApplication,
 {
 public:
   BfxApplication();
-  virtual ~BfxApplication();
+  virtual ~BfxApplication(){}
 
   FIX::SessionID getOrderSessionID() {return orderSessionID;}
   FIX::SessionID getMarketSessionID() {return marketSessionID;}
 
-  void BsMethod();
-
   FIX::SessionSettings settings;
-
-//cli
-public:
-  void run();
-private:
-  char queryAction();
-  bool queryConfirm( const std::string& query );
-  void queryHeader( FIX::Header& header );
-
-  void queryEnterOrder();
-  FIX44::NewOrderSingle queryNewOrderSingle44();
-  FIX44::OrderCancelRequest queryOrderCancelRequest44();
-  FIX44::OrderCancelReplaceRequest queryCancelReplaceRequest44();
-
-  void queryCancelOrder();
-  void queryReplaceOrder();
-  void queryMarketDataRequest();
-
-  FIX::SenderCompID querySenderCompID();
-  FIX::TargetCompID queryTargetCompID();
-  FIX::TargetSubID queryTargetSubID();
-  FIX::ClOrdID queryClOrdID();
-  FIX::OrigClOrdID queryOrigClOrdID();
-  FIX::Symbol querySymbol();
-  FIX::Side querySide();
-  FIX::OrderQty queryOrderQty();
-  FIX::OrdType queryOrdType();
-  FIX::Price queryPrice();
-  FIX::StopPx queryStopPx();
-  FIX::TimeInForce queryTimeInForce();
-
+  
 //helpers
 public:
-  static FIX::TransactTime getCurrentTransactTime();
-  static FIX::ClOrdID getCl0rdID();
+  FIX::TransactTime getCurrentTransactTime();
+  FIX::ClOrdID getCl0rdID();
 
-
-  inline static std::optional<std::mt19937> gen;
-  inline static std::optional<std::uniform_int_distribution<int>> intDist;
+  std::mt19937 gen;
+  std::uniform_int_distribution<int> intDist;
 
 protected:
   FIX::SessionID orderSessionID;
@@ -108,15 +75,7 @@ private:
   EXCEPT ( FIX::FieldNotFound, FIX::IncorrectDataFormat, 
            FIX::IncorrectTagValue, FIX::UnsupportedMessageType ) override;  
 
-  void onMessage( const FIX44::ExecutionReport&, const FIX::SessionID& );
-  void onMessage( const FIX44::OrderCancelReject&, const FIX::SessionID& ){}
-  void onMessage( const FIX44::Reject&, const FIX::SessionID& ){}
-  void onMessage( const FIX44::Heartbeat&, const FIX::SessionID& ){}
-  void onMessage( const FIX44::AllocationInstructionAck&, const FIX::SessionID& ){}
-  void onMessage( const FIX44::AllocationReport&, const FIX::SessionID& ){}
-  void onMessage( const FIX44::PositionReport&, const FIX::SessionID& ){}
-  void onMessage( const FIX44::Logon&, const FIX::SessionID& ){}
-  void onMessage( const FIX44::PositionReport, const FIX::SessionID& );
+  void onMessage( const FIX44::ExecutionReport&, const FIX::SessionID& ) override;
 };
 
 } //End of FIX namespace

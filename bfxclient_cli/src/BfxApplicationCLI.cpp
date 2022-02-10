@@ -1,93 +1,6 @@
-#pragma once
-#include "BfxApplication.hpp"
-
-#include "quickfix/Session.h"
-
-#ifdef HAVE_POSTGRESQL
-#include "quickfix/PostgreSQLConnection.h"
-#include "quickfix/PostgreSQLLog.h"
-#include "quickfix/PostgreSQLStore.h"
-#endif
-
-
+#include "BfxApplicationCLI.hpp"
 namespace FIX {
-
-// ToDo: Write proper destructor
-BfxApplication::~BfxApplication() {}
-
-BfxApplication::BfxApplication(){
-  
-  //Boilerplate
-  if(BfxApplication::gen.has_value() == false){
-   BfxApplication::gen = std::mt19937(time(nullptr));
-  }
-  if(BfxApplication::intDist.has_value() == false){
-    BfxApplication::intDist = std::uniform_int_distribution<int>(0, INT_MAX);
-  }
-
-}
-
-void BfxApplication::onCreate(const SessionID &sessionID) {
-  std::cout << YELLOW << "Session created - Session: " << RESET << sessionID.toString() << "\n";
-
-  if(sessionID.getTargetCompID() == FIX::TargetCompID("BFXFIX") && 
-     sessionID.getSenderCompID() == FIX::SenderCompID("EXORG_ORD"))
-  {
-  orderSessionID = sessionID;
-  }
-  else if(sessionID.getTargetCompID() == FIX::TargetCompID("BFXFIX") && 
-     sessionID.getSenderCompID() == FIX::SenderCompID("EXORG_ORD"))
-  {
-  marketSessionID = sessionID;
-  }
-
-};
-
-void BfxApplication::onLogon(const SessionID &sessionID) {
-  std::cout << GREEN << "Logon - Session: " << RESET << sessionID.toString() << "\n";
-}
-
-void BfxApplication::onLogout(const SessionID &sessionID) {
-  std::cout << RED << "Logout - Session: " << RESET << sessionID.toString() << "\n";
-}
-
-void BfxApplication::toAdmin(Message &message, const SessionID &sessionID) {
-  FIX::MsgType msgType;
-  message.getHeader().getField(msgType);
-
-  if (msgType == MsgType_Logon) {
-    const auto &defaultDict = settings.get();
-    message.setField(20000, defaultDict.getString("APIKEY"));
-    message.setField(20001, defaultDict.getString("APISECRET"));
-    message.setField(20002, defaultDict.getString("BFXUSER"));
-  }
-}
-
-void BfxApplication::toApp(Message &message, const SessionID &sessionID)
-    EXCEPT(DoNotSend) {}
-
-void BfxApplication::fromAdmin(const Message &message,
-                               const SessionID &sessionID)
-    EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon) {
-}
-
-void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
-    EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue,
-           UnsupportedMessageType) {
-  crack(message, sessionID);
-}
-
-void BfxApplication::onMessage( const FIX44::PositionReport, const FIX::SessionID& )
-{ 
-}
-
-void BfxApplication::onMessage( const FIX44::ExecutionReport&, const FIX::SessionID& )
-{ 
-  //A structure of an order is being sent to the database
-  
-}
-
-void BfxApplication::run() {
+void BfxApplicationCLI::run() {
     while ( true )
   {
     try
@@ -110,7 +23,7 @@ void BfxApplication::run() {
   }
 }
   
-char BfxApplication::queryAction() {
+char BfxApplicationCLI::queryAction() {
   char value;
   std::cout << std::endl
   << "1) Enter Order" << std::endl
@@ -127,14 +40,14 @@ char BfxApplication::queryAction() {
   return value;
 }
 
-bool BfxApplication::queryConfirm( const std::string& query ) {
+bool BfxApplicationCLI::queryConfirm( const std::string& query ) {
   std::string value;
   std::cout << std::endl << query << "?: ";
   std::cin >> value;
   return toupper( *value.c_str() ) == 'Y';
 }
 
-void BfxApplication::queryHeader( FIX::Header& header )
+void BfxApplicationCLI::queryHeader( FIX::Header& header )
 {
   header.setField( querySenderCompID() );
   header.setField( queryTargetCompID() );
@@ -143,7 +56,7 @@ void BfxApplication::queryHeader( FIX::Header& header )
     header.setField( queryTargetSubID() );
 }
 
-FIX::SenderCompID BfxApplication::querySenderCompID()
+FIX::SenderCompID BfxApplicationCLI::querySenderCompID()
 {
   std::string value;
   std::cout << std::endl << "SenderCompID: ";
@@ -151,7 +64,7 @@ FIX::SenderCompID BfxApplication::querySenderCompID()
   return FIX::SenderCompID( value );
 }
 
-FIX::TargetCompID BfxApplication::queryTargetCompID()
+FIX::TargetCompID BfxApplicationCLI::queryTargetCompID()
 {
   std::string value;
   std::cout << std::endl << "TargetCompID: ";
@@ -159,7 +72,7 @@ FIX::TargetCompID BfxApplication::queryTargetCompID()
   return FIX::TargetCompID( value );
 }
 
-FIX::TargetSubID BfxApplication::queryTargetSubID()
+FIX::TargetSubID BfxApplicationCLI::queryTargetSubID()
 {
   std::string value;
   std::cout << std::endl << "TargetSubID: ";
@@ -167,7 +80,7 @@ FIX::TargetSubID BfxApplication::queryTargetSubID()
   return FIX::TargetSubID( value );
 }
 
-FIX::ClOrdID BfxApplication::queryClOrdID()
+FIX::ClOrdID BfxApplicationCLI::queryClOrdID()
 {
   std::string value;
   std::cout << std::endl << "ClOrdID: ";
@@ -175,7 +88,7 @@ FIX::ClOrdID BfxApplication::queryClOrdID()
   return FIX::ClOrdID( value );
 }
 
-FIX::OrigClOrdID BfxApplication::queryOrigClOrdID()
+FIX::OrigClOrdID BfxApplicationCLI::queryOrigClOrdID()
 {
   std::string value;
   std::cout << std::endl << "OrigClOrdID: ";
@@ -183,7 +96,7 @@ FIX::OrigClOrdID BfxApplication::queryOrigClOrdID()
   return FIX::OrigClOrdID( value );
 }
 
-FIX::Symbol BfxApplication::querySymbol()
+FIX::Symbol BfxApplicationCLI::querySymbol()
 {
   std::string value;
   std::cout << std::endl << "Symbol: ";
@@ -191,7 +104,7 @@ FIX::Symbol BfxApplication::querySymbol()
   return FIX::Symbol( value );
 }
 
-FIX::Side BfxApplication::querySide()
+FIX::Side BfxApplicationCLI::querySide()
 {
   char value;
   std::cout << std::endl
@@ -218,7 +131,7 @@ FIX::Side BfxApplication::querySide()
   }
 }
 
-FIX::OrderQty BfxApplication::queryOrderQty()
+FIX::OrderQty BfxApplicationCLI::queryOrderQty()
 {
   long value;
   std::cout << std::endl << "OrderQty: ";
@@ -226,7 +139,7 @@ FIX::OrderQty BfxApplication::queryOrderQty()
   return FIX::OrderQty( value );
 }
 
-FIX::OrdType BfxApplication::queryOrdType()
+FIX::OrdType BfxApplicationCLI::queryOrdType()
 {
   char value;
   std::cout << std::endl
@@ -247,7 +160,7 @@ FIX::OrdType BfxApplication::queryOrdType()
   }
 }
 
-FIX::Price BfxApplication::queryPrice()
+FIX::Price BfxApplicationCLI::queryPrice()
 {
   double value;
   std::cout << std::endl << "Price: ";
@@ -255,7 +168,7 @@ FIX::Price BfxApplication::queryPrice()
   return FIX::Price( value );
 }
 
-FIX::StopPx BfxApplication::queryStopPx()
+FIX::StopPx BfxApplicationCLI::queryStopPx()
 {
   double value;
   std::cout << std::endl << "StopPx: ";
@@ -263,7 +176,7 @@ FIX::StopPx BfxApplication::queryStopPx()
   return FIX::StopPx( value );
 }
 
-FIX::TimeInForce BfxApplication::queryTimeInForce()
+FIX::TimeInForce BfxApplicationCLI::queryTimeInForce()
 {
   char value;
   std::cout << std::endl
@@ -286,11 +199,11 @@ FIX::TimeInForce BfxApplication::queryTimeInForce()
   }
 }
 
-void BfxApplication::queryCancelOrder() {
+void BfxApplicationCLI::queryCancelOrder() {
   
 }
 
-void BfxApplication::queryEnterOrder() {
+void BfxApplicationCLI::queryEnterOrder() {
   std::cout << "\nNewOrderSingle\n";
   FIX::Message order;
   
@@ -300,7 +213,7 @@ void BfxApplication::queryEnterOrder() {
     FIX::Session::sendToTarget( order ); 
 }
 
-FIX44::NewOrderSingle BfxApplication::queryNewOrderSingle44() {
+FIX44::NewOrderSingle BfxApplicationCLI::queryNewOrderSingle44() {
   FIX::OrdType ordType;
 
   FIX44::NewOrderSingle newOrderSingle(
@@ -320,7 +233,7 @@ FIX44::NewOrderSingle BfxApplication::queryNewOrderSingle44() {
   return newOrderSingle;
 }
 
-FIX44::OrderCancelRequest BfxApplication::queryOrderCancelRequest44() {
+FIX44::OrderCancelRequest BfxApplicationCLI::queryOrderCancelRequest44() {
   FIX44::OrderCancelRequest orderCancelRequest( queryOrigClOrdID(),
       queryClOrdID(), querySide(), FIX::TransactTime() );
 
@@ -330,7 +243,7 @@ FIX44::OrderCancelRequest BfxApplication::queryOrderCancelRequest44() {
   return orderCancelRequest;
 }
 
-FIX44::OrderCancelReplaceRequest BfxApplication::queryCancelReplaceRequest44() {
+FIX44::OrderCancelReplaceRequest BfxApplicationCLI::queryCancelReplaceRequest44() {
 
   FIX44::OrderCancelReplaceRequest cancelReplaceRequest(
     queryOrigClOrdID(), queryClOrdID(),
@@ -348,34 +261,11 @@ FIX44::OrderCancelReplaceRequest BfxApplication::queryCancelReplaceRequest44() {
   
 }
 
-void BfxApplication::queryMarketDataRequest() {
+void BfxApplicationCLI::queryMarketDataRequest() {
   
 }
 
-void BfxApplication::queryReplaceOrder() {
+void BfxApplicationCLI::queryReplaceOrder() {
   
 }
-
-// Helper methods
-FIX::TransactTime BfxApplication::getCurrentTransactTime() {
-  using namespace std::chrono;
-  using date::operator<<;
-
-  auto tp = system_clock::now();
-  std::stringstream utcTimeStamp;
-  utcTimeStamp << tp;
-  std::stringstream currentTime;
-  FIX::TransactTime transactTime;
-  transactTime.setString(currentTime.str());
-
-  return transactTime;
-}
-
-FIX::ClOrdID BfxApplication::getCl0rdID(){
-  if(BfxApplication::gen.has_value() && BfxApplication::intDist.has_value()){
-  return FIX::ClOrdID(std::to_string(BfxApplication::intDist.value()(BfxApplication::gen.value())));
-  }
-  return FIX::ClOrdID();
-}
-
-}  // namespace FIX
+};

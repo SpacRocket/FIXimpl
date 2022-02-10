@@ -2,7 +2,7 @@
 #include <chrono>
 #include <thread>
 
-#include "BfxClient.hpp"
+#include "BfxClientAbstract.hpp"
 #include "Fixtures.hpp"
 #include "gtest/gtest.h"
 
