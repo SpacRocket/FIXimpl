@@ -24,10 +24,23 @@ TEST(Startup, Connection) {
   ASSERT_TRUE(client.initiator->isLoggedOn());
 }
 
-TEST_F(SimpleMessages, NewOrderSingleBTC) {
+TEST_F(SimpleMessages, NewOrderSingleMarketOrder) {
   FIX44::NewOrderSingle message;
+  message.setField(FIX::OrdType(1));
+
+
   FIX::Session::sendToTarget(message, client.application.getMarketSessionID());
   //Interpret the data received.
+}
 
-  
+TEST_F(SimpleMessages, NewOrderSingleLimitOrder) {
+}
+
+TEST_F(SimpleMessages, NewOrderSingleStopOrder) {
+}
+
+TEST_F(SimpleMessages, NewOrderSingleStopLimitOrder) {
+}
+
+TEST_F(SimpleMessages, NewOrderTrailingStopOrder) {
 }

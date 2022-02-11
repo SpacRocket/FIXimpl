@@ -28,6 +28,7 @@ target_link_libraries(BfxApplication
 
 target_include_directories(BfxApplication
     PUBLIC include
+    PUBLIC include/data_structures
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src"
     PUBLIC Quickfix::Quickfix
     PUBLIC PostgreSQL::PostgreSQL

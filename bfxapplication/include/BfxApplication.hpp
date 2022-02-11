@@ -23,7 +23,6 @@
 #include "date/tz.h"
 #include "date/date.h"
 
-#include "OrderTypes.hpp"
 #include "Misc.hpp"
 
 namespace FIX {
