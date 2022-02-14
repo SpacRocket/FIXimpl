@@ -67,10 +67,10 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
   crack(message, sessionID);
 }
 
-void BfxApplication::onMessage( const FIX44::ExecutionReport&, const FIX::SessionID& )
+void BfxApplication::onMessage( const FIX44::ExecutionReport& argMsg, const FIX::SessionID& argSessionID)
 { 
-  //A structure of an order is being sent to the database
-  
+  //OrdStatus
+  argMsg.setField
 }
 
 // Helper methods

@@ -1,7 +1,4 @@
 #include <map>
+#include <OrderTableModel.hpp>
 
-struct ExecutionTableRow {
-
-};
-
-using ExecutionTableModel = std::map<std::string, ExecutionTableRow>;
+using ExecutionTableModel = std::map<std::string, FIX::OrderRow>;

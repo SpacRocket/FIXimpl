@@ -3,6 +3,7 @@
 
 #include "Fixtures.hpp"
 #include "gtest/gtest.h"
+#include "OrderTableModel.hpp"
 
 TEST(Startup, Connection) {
   FIX::BfxClient<> client;
@@ -25,12 +26,29 @@ TEST(Startup, Connection) {
 }
 
 TEST_F(SimpleMessages, NewOrderSingleMarketOrder) {
-  FIX44::NewOrderSingle message;
-  message.setField(FIX::OrdType(1));
+  auto clOrdID = client.application.getCl0rdID();
+  auto side = FIX::Side_BUY;
+  auto utcTimeStamp = FIX::UtcTimeStamp();
+  auto ordType = FIX::OrdType_MARKET;
+  
+  FIX::OrderTableRow Row; 
+  Row.aSide = side; 
+  Row.aTime = utcTimeStamp; 
+  Row.aOrdType = ordType;
 
+  FIX44::NewOrderSingle message{clOrdID, side, utcTimeStamp, ordType};
 
-  FIX::Session::sendToTarget(message, client.application.getMarketSessionID());
+//Instrument component
+  message.setField(FIX::Symbol("tBTCUSD"));
+//QtyData
+  message.setField(FIX::OrderQty(0.00000001));
+
   //Interpret the data received.
+  FIX::Session::sendToTarget(message, client.application.getMarketSessionID());
+  while(true) {
+    //Check Status of the order
+  };
+
 }
 
 TEST_F(SimpleMessages, NewOrderSingleLimitOrder) {

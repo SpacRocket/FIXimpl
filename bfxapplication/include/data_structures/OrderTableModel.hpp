@@ -1,17 +1,23 @@
+/**
+ * @file OrderTableModel.hpp
+ * @brief a collection of structures/classes for storing orders in engine.
+ */
 #include <map>
 #include <quickfix/Message.h>
 
 namespace FIX{
 /*
-OrderTableRow is for providing outstanding orders that are not filled or partially filled.
+OrderRow is for providing outstanding orders that are not filled or partially filled.
  */
-struct OrderTableRow{
-    FIX::ClOrdID aClOrdID;
+
+struct OrderRow{
     FIX::Side aSide;
     FIX::TransactTime aTime;
-    FIX::OrdType aType;
+    FIX::OrdType aOrdType;
+    std::optional<FIX::Symbol> aSymbol;
+    std::optional<FIX::OrderQty> aOrderQty;
 };
 
-using OrderTableModel = std::map<std::string, OrderTableRow>;
+using OrderTableModel = std::map<std::string, FIX::OrderRow>;
 
 };

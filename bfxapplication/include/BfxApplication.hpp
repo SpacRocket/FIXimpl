@@ -8,6 +8,7 @@
 #include "quickfix/Session.h"
 #include "quickfix/SessionState.h"
 #include "quickfix/SessionFactory.h"
+#include "quickfix/FieldTypes.h"
 
 #include "quickfix/fix44/Logon.h"
 #include "quickfix/fix44/NewOrderSingle.h"
@@ -15,6 +16,7 @@
 #include "quickfix/fix44/OrderCancelReplaceRequest.h"
 #include "quickfix/fix44/PositionReport.h"
 #include "quickfix/fix44/AllocationReport.h"
+#include "quickfix/fix44/ExecutionReport.h"
 
 #include <cstdlib>
 
@@ -24,6 +26,7 @@
 #include "date/date.h"
 
 #include "Misc.hpp"
+#include "data_structures/OrderTableModel.hpp"
 
 namespace FIX {
 /**
@@ -38,8 +41,9 @@ public:
 
   FIX::SessionID getOrderSessionID() {return orderSessionID;}
   FIX::SessionID getMarketSessionID() {return marketSessionID;}
-
   FIX::SessionSettings settings;
+
+  FIX::OrderTableModel orders;
   
 //helpers
 public:
