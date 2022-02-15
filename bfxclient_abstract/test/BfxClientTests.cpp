@@ -46,8 +46,18 @@ TEST_F(SimpleMessages, NewOrderSingleMarketOrder) {
 
   //Interpret the data received.
   FIX::Session::sendToTarget(message, client.application.getMarketSessionID());
+
+  std::optional<FIX::OrdStatus> ordStatus;
   while(true) {
-    //Check Status of the order
+    ordStatus = client.application.orders[clOrdID].aOrdStatus;
+    if(ordStatus.has_value()){
+      if(ordStatus.value() == FIX::OrdStatus_NEW){
+         EXPECT_TRUE(true);
+      }
+      else if(ordStatus.value() == FIX::OrdStatus_REJECTED){
+        EXPECT_TRUE(false);
+      }
+    }
   };
 
 }

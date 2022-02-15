@@ -1,7 +1,6 @@
 #pragma once
 #include "quickfix/Application.h"
 #include "quickfix/MessageCracker.h"
-#include "quickfix/Values.h"
 #include "quickfix/Mutex.h"
 #include "quickfix/SessionSettings.h"
 #include "quickfix/Dictionary.h"
