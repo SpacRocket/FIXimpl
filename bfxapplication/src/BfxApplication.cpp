@@ -70,7 +70,15 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
 void BfxApplication::onMessage( const FIX44::ExecutionReport& argMsg, const FIX::SessionID& argSessionID)
 { 
   //OrdStatus
-  argMsg.setField
+  FIX::OrdStatus OrdStatus;
+  try{
+    argMsg.get(OrdStatus);
+    if(OrdStatus.getValue() == FIX::OrdStatus_REJECTED || OrdStatus.getValue() == FIX::OrdStatus_NEW){
+      orders
+    }
+
+  }catch( ... ){}
+  
 }
 
 // Helper methods

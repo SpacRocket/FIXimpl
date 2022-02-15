@@ -31,12 +31,13 @@ TEST_F(SimpleMessages, NewOrderSingleMarketOrder) {
   auto utcTimeStamp = FIX::UtcTimeStamp();
   auto ordType = FIX::OrdType_MARKET;
   
-  FIX::OrderTableRow Row; 
+  FIX::OrderRow Row;
   Row.aSide = side; 
   Row.aTime = utcTimeStamp; 
   Row.aOrdType = ordType;
 
   FIX44::NewOrderSingle message{clOrdID, side, utcTimeStamp, ordType};
+  client.application.orders[clOrdID] = Row;
 
 //Instrument component
   message.setField(FIX::Symbol("tBTCUSD"));

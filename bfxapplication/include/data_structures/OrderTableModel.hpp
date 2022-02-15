@@ -11,13 +11,19 @@ OrderRow is for providing outstanding orders that are not filled or partially fi
  */
 
 struct OrderRow{
+    FIX::ClOrdID aClOrdID;
+
     FIX::Side aSide;
     FIX::TransactTime aTime;
     FIX::OrdType aOrdType;
+    FIX::OrdStatus aOrdStatus;
+
     std::optional<FIX::Symbol> aSymbol;
     std::optional<FIX::OrderQty> aOrderQty;
+    std::optional<FIX::CumQty> aCumQty;
+    std::optional<FIX::LeavesQty> aLeavesQty;
 };
 
-using OrderTableModel = std::map<std::string, FIX::OrderRow>;
+using OrderTableModel = std::map<FIX::ClOrdID, FIX::OrderRow>;
 
 };
