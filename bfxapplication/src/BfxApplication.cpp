@@ -51,6 +51,7 @@ void BfxApplication::toAdmin(Message &message, const SessionID &sessionID) {
     message.setField(20001, defaultDict.getString("APISECRET"));
     message.setField(20002, defaultDict.getString("BFXUSER"));
   }
+  
 }
 
 void BfxApplication::toApp(Message &message, const SessionID &sessionID)

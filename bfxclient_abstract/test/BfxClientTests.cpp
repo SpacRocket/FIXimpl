@@ -3,7 +3,6 @@
 
 #include "Fixtures.hpp"
 #include "gtest/gtest.h"
-#include "OrderTableModel.hpp"
 
 TEST(Startup, Connection) {
   FIX::BfxClient<> client;
@@ -26,6 +25,9 @@ TEST(Startup, Connection) {
 }
 
 TEST_F(SimpleMessages, NewOrderSingleMarketOrder) {
+  while(!client.initiator->isLoggedOn()){
+
+  }
   auto clOrdID = client.application.getCl0rdID();
   auto side = FIX::Side_BUY;
   auto utcTimeStamp = FIX::UtcTimeStamp();
@@ -45,23 +47,24 @@ TEST_F(SimpleMessages, NewOrderSingleMarketOrder) {
   message.setField(FIX::OrderQty(0.00000001));
 
   //Interpret the data received.
-  FIX::Session::sendToTarget(message, client.application.getMarketSessionID());
+  EXPECT_TRUE(client.application.getOrderSessionID().has_value());
+
+  FIX::Session::sendToTarget(message, client.application.getOrderSessionID().value());
 
   std::optional<FIX::OrdStatus> ordStatus;
   while(true) {
     ordStatus = client.application.orders[clOrdID].aOrdStatus;
     if(ordStatus.has_value()){
       if(ordStatus.value() == FIX::OrdStatus_NEW){
-         EXPECT_TRUE(true);
+        EXPECT_TRUE(true);
       }
       else if(ordStatus.value() == FIX::OrdStatus_REJECTED){
         EXPECT_TRUE(false);
       }
     }
   };
-
 }
-
+/*
 TEST_F(SimpleMessages, NewOrderSingleLimitOrder) {
 }
 
@@ -72,4 +75,4 @@ TEST_F(SimpleMessages, NewOrderSingleStopLimitOrder) {
 }
 
 TEST_F(SimpleMessages, NewOrderTrailingStopOrder) {
-}
+}*/

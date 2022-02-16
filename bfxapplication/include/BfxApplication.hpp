@@ -38,8 +38,8 @@ public:
   BfxApplication();
   virtual ~BfxApplication(){}
 
-  FIX::SessionID getOrderSessionID() {return orderSessionID;}
-  FIX::SessionID getMarketSessionID() {return marketSessionID;}
+  std::optional<FIX::SessionID> getOrderSessionID() {return orderSessionID;}
+  std::optional<FIX::SessionID> getMarketSessionID() {return marketSessionID;}
   FIX::SessionSettings settings;
 
   FIX::OrderTableModel orders;
@@ -53,8 +53,8 @@ public:
   std::uniform_int_distribution<int> intDist;
 
 protected:
-  FIX::SessionID orderSessionID;
-  FIX::SessionID marketSessionID;
+  std::optional<FIX::SessionID> orderSessionID;
+  std::optional<FIX::SessionID> marketSessionID;
 
 private:
 //--- Message Handlers ---
@@ -77,7 +77,7 @@ private:
   EXCEPT ( FIX::FieldNotFound, FIX::IncorrectDataFormat, 
            FIX::IncorrectTagValue, FIX::UnsupportedMessageType ) override;  
 
-  void onMessage( const FIX44::ExecutionReport&, const FIX::SessionID& ) override;
+  void onMessage( const FIX40::ExecutionReport&, const FIX::SessionID& ) override;
 };
 
 } //End of FIX namespace
