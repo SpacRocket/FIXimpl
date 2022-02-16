@@ -7,8 +7,9 @@
 #include "gtest/gtest.h"
 
 class MessagingTest : public ::testing::Test {
+  public:
+  ~MessagingTest() throw() {}
  protected:
-
   void SetUp() override {
     client.initiator->start();
 
