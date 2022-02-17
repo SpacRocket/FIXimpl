@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 
 TEST(Startup, Connection) {
-  FIX::BfxClient<> client;
+  FIX::BfxClient<> client(FIX::SSLMode::SSL);
   client.initiator->start();
 
   using std::chrono::duration;
@@ -26,7 +26,7 @@ TEST(Startup, Connection) {
 
 TEST_F(SimpleMessages, NewOrderSingleBTC) {
   FIX44::NewOrderSingle message;
-  FIX::Session::sendToTarget(message, client.application.getMarketSessionID());
+  FIX::Session::sendToTarget(message, client.value().application.getMarketSessionID());
   //Interpret the data received.
 
   

@@ -47,9 +47,13 @@ void BfxApplication::toAdmin(Message &message, const SessionID &sessionID) {
 
   if (msgType == MsgType_Logon) {
     const auto &defaultDict = settings.get();
-    message.setField(20000, defaultDict.getString("APIKEY"));
-    message.setField(20001, defaultDict.getString("APISECRET"));
-    message.setField(20002, defaultDict.getString("BFXUSER"));
+    
+    std::ostringstream prehashStringStream;
+    prehashStringStream << new FIX::UtcDate() << (char)1 << MsgType_Logon << (char)1 << 
+    message.getField(FIX::FIELD::MsgSeqNum) << (char)1 << message.getField(FIX::FIELD::SenderCompID)
+    << (char)1 << message.getField(FIX::FIELD::SenderCompID) << (char)1 << message.getField(FIX::FIELD::Password);
+
+
   }
 }
 
