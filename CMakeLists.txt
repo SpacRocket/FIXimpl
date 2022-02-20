@@ -11,6 +11,9 @@ if (CMAKE_CXX_CPPCHECK)
             "--inconclusive"
             "--force" 
             "--inline-suppr"
-            "--suppressions-list=${CMAKE_SOURCE_DIR}/CppCheckSuppressions.txt"
     )
 endif()
+
+add_subdirectory(bfxclient_cli)
+add_subdirectory(bfxclient_abstract)
+add_subdirectory(bfxapplication)

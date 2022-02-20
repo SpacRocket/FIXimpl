@@ -23,7 +23,6 @@ target_link_libraries(BfxApplication
     PUBLIC PostgreSQL::PostgreSQL
     PUBLIC OpenSSL::SSL
     PUBLIC OpenSSL::Crypto
-    PUBLIC date::date
     )
 
 target_include_directories(BfxApplication

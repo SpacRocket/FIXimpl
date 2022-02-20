@@ -11,7 +11,7 @@
 #include "quickfix/FileLog.h"
 #include "quickfix/NullStore.h"
 
-#include "BfxApplication.hpp" 
+#include "BfxApplication.hpp"
 #include <string>
 #include <iostream>
 #include <fstream>

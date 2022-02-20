@@ -7,7 +7,7 @@
 TEST(Startup, Connection) {
   FIX::BfxClient<> client(FIX::SSLMode::SSL);
   client.initiator->start();
-
+  
   using std::chrono::duration;
   using std::chrono::high_resolution_clock;
   using std::chrono::seconds;
@@ -28,6 +28,4 @@ TEST_F(SimpleMessages, NewOrderSingleBTC) {
   FIX44::NewOrderSingle message;
   FIX::Session::sendToTarget(message, client.value().application.getMarketSessionID());
   //Interpret the data received.
-
-  
 }

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 INCLUDE_GUARD(GLOBAL)
 project(BfxClientAbstract)
+set(CMAKE_CXX_STANDARD 20)
 
 find_package(Quickfix REQUIRED)
 find_package(OpenSSL REQUIRED)
@@ -39,3 +40,5 @@ target_include_directories(BfxClientAbstract
     INTERFACE OpenSSL::Crypto
     INTERFACE BfxApplication
     )
+    
+add_subdirectory(test)
