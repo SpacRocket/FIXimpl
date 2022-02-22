@@ -19,13 +19,15 @@ TEST(Startup, Connection) {
   do {
     auto t2 = high_resolution_clock::now();
     dur = t2 - t1;
-
   } while (!client.initiator->isLoggedOn() && dur < maxWaitingTime);
+  while(true){}
+
   ASSERT_TRUE(client.initiator->isLoggedOn());
 }
 
+/*
 TEST_F(SimpleMessages, NewOrderSingleBTC) {
   FIX44::NewOrderSingle message;
   FIX::Session::sendToTarget(message, client.value().application.getMarketSessionID());
   //Interpret the data received.
-}
+}*/

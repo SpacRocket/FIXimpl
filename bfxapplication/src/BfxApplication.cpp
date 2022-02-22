@@ -56,13 +56,24 @@ void BfxApplication::toAdmin(Message &message, const SessionID &sessionID) {
   if (msgType == MsgType_Logon) {
     const auto &defaultDict = settings.get();
 
-    std::string secretDecrypted = base64_decode(defaultDict.getString("ApiSecret"));    
+    std::string secretDecrypted = base64_decode(defaultDict.getString("ApiSecret")); 
+    std::string password = defaultDict.getString("Password");
+    message.setField(FIX::Password(password));
+  
+    auto sendingTime{FIX::SendingTime()};
+    message.setField(sendingTime);
+
+    auto const& header = message.getHeader();
+    auto msgSeqNum{header.getField(FIX::FIELD::MsgSeqNum)};
     
     std::ostringstream prehashStringStream;
 
-    prehashStringStream << new FIX::UtcDate() << (char)1 << MsgType_Logon << (char)1 << 
-    message.getField(FIX::FIELD::MsgSeqNum) << (char)1 << message.getField(FIX::FIELD::SenderCompID)
-    << (char)1 << message.getField(FIX::FIELD::SenderCompID) << (char)1 << message.getField(FIX::FIELD::Password);
+    prehashStringStream << sendingTime.getString()
+    << "\x01" << MsgType_Logon 
+    << "\x01" << msgSeqNum 
+    << "\x01" << sessionID.getSenderCompID().getString() 
+    << "\x01" << sessionID.getTargetCompID().getString()
+    << "\x01" << password;
 
     std::string prehashString{prehashStringStream.str()};
 
@@ -72,8 +83,10 @@ void BfxApplication::toAdmin(Message &message, const SessionID &sessionID) {
       ,decryptedSignature.length())};
 
     message.setField(rawData);
-  }
 
+    FIX::CheckSum check{message.checkSum()};
+    message.setField(check);
+  }
 }
 
 void BfxApplication::toApp(Message &message, const SessionID &sessionID)
