@@ -11,7 +11,10 @@ class MessagingTest : public ::testing::Test {
   ~MessagingTest() throw() {}
  protected:
   void SetUp() override {
-    client.initiator->start();
+    client = FIX::BfxClient<>(FIX::SSLMode::SSL);
+    if(client.has_value() == false) ASSERT_TRUE(false);
+    
+    client.value().initiator->start();
 
     using std::chrono::duration;
     using std::chrono::high_resolution_clock;
@@ -25,12 +28,12 @@ class MessagingTest : public ::testing::Test {
       auto t2 = high_resolution_clock::now();
       dur = t2 - t1;
 
-    } while (!client.initiator->isLoggedOn() && dur < maxWaitingTime);
-    EXPECT_TRUE(client.initiator->isLoggedOn()) << "Reason: Timeout";
+    } while (!client.value().initiator->isLoggedOn() && dur < maxWaitingTime);
+    EXPECT_TRUE(client.value().initiator->isLoggedOn()) << "Reason: Timeout";
   }
   // void TearDown() override {}
 public:
-  FIX::BfxClient<> client;
+  std::optional<FIX::BfxClient<>> client;
 };
 
 class SimpleMessages : public MessagingTest{};

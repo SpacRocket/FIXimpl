@@ -11,4 +11,6 @@ CTestTestfile.cmake
 _deps
 tmp/
 .vscode/
+.idea/
+log/
 build/

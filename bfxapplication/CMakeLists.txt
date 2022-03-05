@@ -6,7 +6,7 @@ project(BfxApplication)
 find_package(Quickfix REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(date REQUIRED)
-find_package(PostgreSQL REQUIRED)
+find_package(Poco REQUIRED Foundation)
 
 add_library(BfxApplication src/BfxApplication.cpp)
 
@@ -14,16 +14,12 @@ if(OPENSSL_FOUND)
 target_compile_definitions(BfxApplication PUBLIC HAVE_SSL=1)
 endif()
 
-if(PostgreSQL_FOUND)
-target_compile_definitions(BfxApplication PUBLIC HAVE_POSTGRESQL=1)
-endif()
 
 target_link_libraries(BfxApplication 
     PUBLIC Quickfix::Quickfix
-    PUBLIC PostgreSQL::PostgreSQL
     PUBLIC OpenSSL::SSL
     PUBLIC OpenSSL::Crypto
-    PUBLIC date::date
+    PUBLIC Poco::Foundation
     )
 
 target_include_directories(BfxApplication
@@ -31,10 +27,10 @@ target_include_directories(BfxApplication
     PUBLIC include/data_structures
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src"
     PUBLIC Quickfix::Quickfix
-    PUBLIC PostgreSQL::PostgreSQL
     PUBLIC date::date
     PUBLIC OpenSSL::SSL
     PUBLIC OpenSSL::Crypto
+    PUBLIC Poco::Foundation
     )
 
 target_sources(BfxApplication
