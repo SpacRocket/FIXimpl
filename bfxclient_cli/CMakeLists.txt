@@ -6,7 +6,6 @@ project(BfxClientCli)
 find_package(Quickfix REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(date REQUIRED)
-find_package(PostgreSQL REQUIRED)
 
 add_executable(BfxClientCli src/BfxClientCli.cpp)
 
@@ -21,13 +20,8 @@ if(OPENSSL_FOUND)
 target_compile_definitions(BfxClientCli PUBLIC HAVE_SSL=1)
 endif()
 
-if(PostgreSQL_FOUND)
-target_compile_definitions(BfxClientCli PUBLIC HAVE_POSTGRESQL=1)
-endif()
-
 target_link_libraries(BfxClientCli 
     PUBLIC Quickfix::Quickfix
-    PUBLIC PostgreSQL::PostgreSQL
     PUBLIC OpenSSL::SSL
     PUBLIC OpenSSL::Crypto
     PUBLIC date::date
@@ -38,7 +32,6 @@ target_link_libraries(BfxClientCli
 target_include_directories(BfxClientCli
     PUBLIC include
     PUBLIC Quickfix::Quickfix
-    PUBLIC PostgreSQL::PostgreSQL
     PUBLIC date::date
     PUBLIC OpenSSL::SSL
     PUBLIC OpenSSL::Crypto
