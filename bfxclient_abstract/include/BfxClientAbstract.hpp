@@ -26,7 +26,8 @@ enum class SSLMode { None, SSL, SSL_ST};
 #endif
 
 /**
- * @brief Collection of all the things required for working QuickFix Initiator.
+ * @brief Templated BfxClient
+ * @details  A set of different helper methods for starting a client. Can swap Application member type to implement different protocols.
  */
 template <class T = BfxApplication>
 class BfxClient {

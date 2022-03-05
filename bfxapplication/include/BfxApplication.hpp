@@ -1,13 +1,13 @@
 #pragma once
 #include "quickfix/Application.h"
 #include "quickfix/MessageCracker.h"
-#include "quickfix/Values.h"
 #include "quickfix/Mutex.h"
 #include "quickfix/SessionSettings.h"
 #include "quickfix/Dictionary.h"
 #include "quickfix/Session.h"
 #include "quickfix/SessionState.h"
 #include "quickfix/SessionFactory.h"
+#include "quickfix/FieldTypes.h"
 
 #include "quickfix/fix44/Logon.h"
 #include "quickfix/fix44/NewOrderSingle.h"
@@ -15,6 +15,7 @@
 #include "quickfix/fix44/OrderCancelReplaceRequest.h"
 #include "quickfix/fix44/PositionReport.h"
 #include "quickfix/fix44/AllocationReport.h"
+#include "quickfix/fix44/ExecutionReport.h"
 
 #include <cstdlib>
 
@@ -23,8 +24,8 @@
 #include "date/tz.h"
 #include "date/date.h"
 
-#include "OrderTypes.hpp"
 #include "Misc.hpp"
+#include "data_structures/OrderTableModel.hpp"
 
 namespace FIX {
 /**
@@ -37,10 +38,11 @@ public:
   BfxApplication();
   virtual ~BfxApplication(){}
 
-  FIX::SessionID getOrderSessionID() {return orderSessionID;}
-  FIX::SessionID getMarketSessionID() {return marketSessionID;}
-
+  std::optional<FIX::SessionID> getOrderSessionID() {return orderSessionID;}
+  std::optional<FIX::SessionID> getMarketSessionID() {return marketSessionID;}
   FIX::SessionSettings settings;
+
+  FIX::OrderTableModel orders;
   
 //helpers
 public:
@@ -51,8 +53,8 @@ public:
   std::uniform_int_distribution<int> intDist;
 
 protected:
-  FIX::SessionID orderSessionID;
-  FIX::SessionID marketSessionID;
+  std::optional<FIX::SessionID> orderSessionID;
+  std::optional<FIX::SessionID> marketSessionID;
 
 private:
 //--- Message Handlers ---
@@ -75,7 +77,7 @@ private:
   EXCEPT ( FIX::FieldNotFound, FIX::IncorrectDataFormat, 
            FIX::IncorrectTagValue, FIX::UnsupportedMessageType ) override;  
 
-  void onMessage( const FIX44::ExecutionReport&, const FIX::SessionID& ) override;
+  void onMessage( const FIX40::ExecutionReport&, const FIX::SessionID& ) override;
 };
 
 } //End of FIX namespace

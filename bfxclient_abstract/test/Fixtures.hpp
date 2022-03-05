@@ -7,8 +7,9 @@
 #include "gtest/gtest.h"
 
 class MessagingTest : public ::testing::Test {
+  public:
+  ~MessagingTest() throw() {}
  protected:
-
   void SetUp() override {
     client = FIX::BfxClient<>(FIX::SSLMode::SSL);
     if(client.has_value() == false) ASSERT_TRUE(false);

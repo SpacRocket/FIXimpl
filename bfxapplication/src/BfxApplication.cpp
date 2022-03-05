@@ -134,9 +134,20 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
   crack(message, sessionID);
 }
 
-void BfxApplication::onMessage( const FIX44::ExecutionReport&, const FIX::SessionID& )
+void BfxApplication::onMessage( const FIX44::ExecutionReport& argMsg, const FIX::SessionID& argSessionID)
 { 
   //A structure of an order is being sent to the database
+  FIX::ClOrdID clOrdID;
+
+  //OrdStatus
+  FIX::OrdStatus ordStatus;
+  try{
+    argMsg.get(ordStatus);
+    argMsg.get(clOrdID);
+    if(ordStatus.getValue() == FIX::OrdStatus_REJECTED || ordStatus.getValue() == FIX::OrdStatus_NEW){
+      orders[clOrdID].aOrdStatus = ordStatus.getValue();
+    }
+  }catch( ... ){}
 }
 
 // Helper methods

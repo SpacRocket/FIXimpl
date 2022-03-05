@@ -12,10 +12,6 @@ add_executable(BfxClientCli src/BfxClientCli.cpp)
 add_subdirectory(../bfxclient_abstract sub/build_client)
 add_subdirectory(../bfxapplication sub/build_application)
 
-if(NOT )
-message(FATAL_ERROR "MYLIB library not found")
-endif()
-
 if(OPENSSL_FOUND)
 target_compile_definitions(BfxClientCli PUBLIC HAVE_SSL=1)
 endif()

@@ -28,5 +28,4 @@ TEST(Startup, Connection) {
 TEST_F(SimpleMessages, NewOrder>SingleBTC) {
   FIX44::NewOrderSingle message;
   FIX::Session::sendToTarget(message, client.value().application.getMarketSessionID());
-  //Interpret the data received.
 }*/

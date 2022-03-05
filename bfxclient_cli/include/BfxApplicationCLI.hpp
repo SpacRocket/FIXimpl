@@ -10,7 +10,7 @@ private:
   bool queryConfirm( const std::string& query );
   void queryHeader( FIX::Header& header );
 
-  void queryEnterOrder();
+  void queryEnterOrder(); 
   FIX44::NewOrderSingle queryNewOrderSingle44();
   FIX44::OrderCancelRequest queryOrderCancelRequest44();
   FIX44::OrderCancelReplaceRequest queryCancelReplaceRequest44();
