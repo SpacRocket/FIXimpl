@@ -9,13 +9,11 @@
 #include "quickfix/SessionFactory.h"
 #include "quickfix/FieldTypes.h"
 
-#include "quickfix/fix44/Logon.h"
-#include "quickfix/fix44/NewOrderSingle.h"
-#include "quickfix/fix44/OrderCancelRequest.h"
-#include "quickfix/fix44/OrderCancelReplaceRequest.h"
-#include "quickfix/fix44/PositionReport.h"
-#include "quickfix/fix44/AllocationReport.h"
-#include "quickfix/fix44/ExecutionReport.h"
+#include "quickfix/fix42/Logon.h"
+#include "quickfix/fix42/NewOrderSingle.h"
+#include "quickfix/fix42/OrderCancelRequest.h"
+#include "quickfix/fix42/OrderCancelReplaceRequest.h"
+#include "quickfix/fix42/ExecutionReport.h"
 
 #include <cstdlib>
 
@@ -38,8 +36,7 @@ public:
   BfxApplication();
   virtual ~BfxApplication(){}
 
-  std::optional<FIX::SessionID> getOrderSessionID() {return orderSessionID;}
-  std::optional<FIX::SessionID> getMarketSessionID() {return marketSessionID;}
+  std::optional<FIX::SessionID> getSessionID() {return currSessionID;}
   FIX::SessionSettings settings;
 
   FIX::OrderTableModel orders;
@@ -53,8 +50,7 @@ public:
   std::uniform_int_distribution<int> intDist;
 
 protected:
-  std::optional<FIX::SessionID> orderSessionID;
-  std::optional<FIX::SessionID> marketSessionID;
+  std::optional<FIX::SessionID> currSessionID;
 
 private:
 //--- Message Handlers ---
@@ -77,7 +73,7 @@ private:
   EXCEPT ( FIX::FieldNotFound, FIX::IncorrectDataFormat, 
            FIX::IncorrectTagValue, FIX::UnsupportedMessageType ) override;  
 
-  void onMessage( const FIX40::ExecutionReport&, const FIX::SessionID& ) override;
+  void onMessage( const FIX42::ExecutionReport&, const FIX::SessionID& ) override;
 };
 
 } //End of FIX namespace
