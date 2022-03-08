@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.21)
 include_guard(GLOBAL)
 set(CMAKE_CXX_STANDARD 20)
 project(BfxClientCli)

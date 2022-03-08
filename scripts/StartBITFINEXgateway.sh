@@ -1,1 +1,0 @@
-$GOPATH/bin/bfxfixgw -v -orders -ordcfg "orders.cfg" -md -mdcfg "marketdata.cfg" -rest "https://api.bitfinex.com/v2/" -ws "wss://api.bitfinex.com/ws/2"
