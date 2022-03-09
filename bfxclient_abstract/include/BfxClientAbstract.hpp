@@ -31,7 +31,6 @@ enum class SSLMode { None, SSL, SSL_ST};
  */
 template <class T = BfxApplication>
 class BfxClient {
-    
 public:
 //Constructors
         /** @brief Setups member components based on BFX_CLIENT_CONF */
@@ -48,10 +47,11 @@ public:
         FIX::SessionSettings settings;
         T application;
 
-        FIX::Initiator* initiator;
+        std::unique_ptr<FIX::Initiator> initiator;
         std::optional<FIX::FileStoreFactory> storeFactory;
         std::optional<FIX::ScreenLogFactory> logFactory;
 }; //End of BfxClient
+
 }
 
 // Constructors
@@ -69,8 +69,8 @@ FIX::BfxClient<T>::BfxClient() {
   storeFactory = FIX::FileStoreFactory(settings);
   logFactory = FIX::ScreenLogFactory(settings);
 
-  initiator = new FIX::SocketInitiator(application, storeFactory.value(),
-                                       settings, logFactory.value());
+  initiator.reset(new FIX::SocketInitiator(application, storeFactory.value(),
+                                       settings, logFactory.value()));
 }
 
 template <class T>
@@ -89,16 +89,20 @@ FIX::BfxClient<T>::BfxClient(bool logging) {
     storeFactory = FIX::FileStoreFactory(settings);
     logFactory = FIX::ScreenLogFactory(settings);
 
-    initiator = new FIX::SocketInitiator(application, storeFactory.value(),
-                                         settings, logFactory.value());
+    initiator.reset(new FIX::SocketInitiator(application, storeFactory.value(),
+                                         settings, logFactory.value()));
   } else {
-    initiator = new FIX::SocketInitiator(application, storeFactory.value(),
-                                         settings, logFactory.value());
+    initiator.reset(new FIX::SocketInitiator(application, storeFactory.value(),
+                                         settings, logFactory.value()));
   }
 }
 
 template <class T>
-FIX::BfxClient<T>::~BfxClient() {}
+FIX::BfxClient<T>::~BfxClient() {
+    initiator->stop();
+    while(initiator->isStopped() == false){}
+    initiator = nullptr;
+}
 
 #ifdef HAVE_SSL
 template <class T>
@@ -112,14 +116,14 @@ FIX::BfxClient<T>::BfxClient::BfxClient(std::string configFilePath,
   logFactory = FIX::ScreenLogFactory(settings);
 
   if (mode == FIX::SSLMode::SSL)
-    initiator = new FIX::ThreadedSSLSocketInitiator(
-        application, storeFactory.value(), settings, logFactory.value());
+    initiator.reset(new FIX::ThreadedSSLSocketInitiator(
+        application, storeFactory.value(), settings, logFactory.value()));
   else if (mode == FIX::SSLMode::SSL_ST)
-    initiator = new FIX::SSLSocketInitiator(application, storeFactory.value(),
-                                            settings, logFactory.value());
+    initiator.reset(new FIX::SSLSocketInitiator(application, storeFactory.value(),
+                                            settings, logFactory.value()));
   else if (mode == FIX::SSLMode::None)
-    initiator = new FIX::SocketInitiator(application, storeFactory.value(),
-                                         settings, logFactory.value());
+    initiator.reset( new FIX::SocketInitiator(application, storeFactory.value(),
+                                         settings, logFactory.value()));
 }
 
 template <class T>
@@ -132,20 +136,20 @@ FIX::BfxClient<T>::BfxClient(FIX::SSLMode mode) {
   }
 
   settings = FIX::SessionSettings(bfxconf);
-  
+
   application.settings = settings;
 
   storeFactory = FIX::FileStoreFactory(settings);
   logFactory = FIX::ScreenLogFactory(settings);
 
   if (mode == FIX::SSLMode::SSL)
-    initiator = new FIX::ThreadedSSLSocketInitiator(
-        application, storeFactory.value(), settings, logFactory.value());
+    initiator.reset(new FIX::ThreadedSSLSocketInitiator(
+        application, storeFactory.value(), settings, logFactory.value()));
   else if (mode == FIX::SSLMode::SSL_ST)
-    initiator = new FIX::SSLSocketInitiator(application, storeFactory.value(),
-                                            settings, logFactory.value());
+    initiator.reset( new FIX::SSLSocketInitiator(application, storeFactory.value(),
+                                            settings, logFactory.value()));
   else if (mode == FIX::SSLMode::None)
-    initiator = new FIX::SocketInitiator(application, storeFactory.value(),
-                                         settings, logFactory.value());
+    initiator.reset(new FIX::SocketInitiator(application, storeFactory.value(),
+                                         settings, logFactory.value()));
 }
 #endif

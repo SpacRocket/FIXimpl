@@ -5,7 +5,6 @@
 #include "Poco/Base64Encoder.h"
 #include "Poco/HMACEngine.h"
 #include "Poco/SHA2Engine.h"
-#include "Poco/DigestEngine.h"
 #include "Poco/StreamCopier.h"
 
 #include <istream>
@@ -38,18 +37,7 @@ BfxApplication::BfxApplication(){
 
 void BfxApplication::onCreate(const SessionID &sessionID) {
   std::cout << YELLOW << "Session created - Session: " << RESET << sessionID.toString() << "\n";
-
-  if(sessionID.getTargetCompID() == FIX::TargetCompID("BFXFIX") && 
-     sessionID.getSenderCompID() == FIX::SenderCompID("EXORG_ORD"))
-  {
-  orderSessionID = sessionID;
-  }
-  else if(sessionID.getTargetCompID() == FIX::TargetCompID("BFXFIX") && 
-     sessionID.getSenderCompID() == FIX::SenderCompID("EXORG_ORD"))
-  {
-  marketSessionID = sessionID;
-  }
-
+  this->currSessionID = sessionID;
 };
 
 void BfxApplication::onLogon(const SessionID &sessionID) {
@@ -134,7 +122,7 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
   crack(message, sessionID);
 }
 
-void BfxApplication::onMessage( const FIX44::ExecutionReport& argMsg, const FIX::SessionID& argSessionID)
+void BfxApplication::onMessage( const FIX42::ExecutionReport& argMsg, const FIX::SessionID& argSessionID)
 { 
   //A structure of an order is being sent to the database
   FIX::ClOrdID clOrdID;
