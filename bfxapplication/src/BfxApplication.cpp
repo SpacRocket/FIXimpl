@@ -5,7 +5,6 @@
 #include "Poco/Base64Encoder.h"
 #include "Poco/HMACEngine.h"
 #include "Poco/SHA2Engine.h"
-#include "Poco/DigestEngine.h"
 #include "Poco/StreamCopier.h"
 
 #include <istream>
