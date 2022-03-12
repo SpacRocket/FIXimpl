@@ -24,67 +24,9 @@ TEST(Startup, Connection) {
   ASSERT_TRUE(client.initiator->isLoggedOn());
 }
 
-TEST(Startup2, Connection2) {
-    FIX::BfxClient<> client{};
-    client.initiator->start();
+TEST_F(MessagingTest, TestConnectionInFixture){
 
-    using std::chrono::duration;
-    using std::chrono::high_resolution_clock;
-    using std::chrono::seconds;
-
-    auto t1{high_resolution_clock::now()};
-    seconds maxWaitingTime{7};
-    duration<double> dur;
-
-    do {
-        auto t2 = high_resolution_clock::now();
-        dur = t2 - t1;
-    } while (!client.initiator->isLoggedOn() && dur < maxWaitingTime);
-
-    ASSERT_TRUE(client.initiator->isLoggedOn());
 }
+TEST_F(MessagingTest, TestConnectionInFixture2){
 
-TEST(Startup3, Connection3) {
-    FIX::BfxClient<> client{};
-    client.initiator->start();
-
-    using std::chrono::duration;
-    using std::chrono::high_resolution_clock;
-    using std::chrono::seconds;
-
-    auto t1{high_resolution_clock::now()};
-    seconds maxWaitingTime{7};
-    duration<double> dur;
-
-    do {
-        auto t2 = high_resolution_clock::now();
-        dur = t2 - t1;
-    } while (!client.initiator->isLoggedOn() && dur < maxWaitingTime);
-
-    ASSERT_TRUE(client.initiator->isLoggedOn());
 }
-
-TEST(Startup4, Connection4) {
-    FIX::BfxClient<> client{};
-    client.initiator->start();
-
-    using std::chrono::duration;
-    using std::chrono::high_resolution_clock;
-    using std::chrono::seconds;
-
-    auto t1{high_resolution_clock::now()};
-    seconds maxWaitingTime{7};
-    duration<double> dur;
-
-    do {
-        auto t2 = high_resolution_clock::now();
-        dur = t2 - t1;
-    } while (!client.initiator->isLoggedOn() && dur < maxWaitingTime);
-
-    ASSERT_TRUE(client.initiator->isLoggedOn());
-}
-/*
-TEST_F(SimpleMessages, NewOrder>SingleBTC) {
-  FIX44::NewOrderSingle message;
-  FIX::Session::sendToTarget(message, client.value().application.getMarketSessionID());
-}*/
