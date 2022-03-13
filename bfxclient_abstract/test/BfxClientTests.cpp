@@ -1,32 +1,28 @@
+#include <quickfix/FixFields.h>
+#include <quickfix/fix42/NewOrderSingle.h>
+
 #include <chrono>
 #include <thread>
 
 #include "Fixtures.hpp"
 #include "gtest/gtest.h"
 
+#pragma region SetupCheck
+
 TEST(Startup, Connection) {
   FIX::BfxClient<> client{};
   client.initiator->start();
-  
-  using std::chrono::duration;
-  using std::chrono::high_resolution_clock;
-  using std::chrono::seconds;
 
-  auto t1{high_resolution_clock::now()};
-  seconds maxWaitingTime{7};
-  duration<double> dur;
-
+  Poco::Stopwatch stopwatch;
+  stopwatch.start();
   do {
-    auto t2 = high_resolution_clock::now();
-    dur = t2 - t1;
-  } while (!client.initiator->isLoggedOn() && dur < maxWaitingTime);
+  } while (!client.initiator->isLoggedOn() && stopwatch.elapsedSeconds() < 3);
 
   ASSERT_TRUE(client.initiator->isLoggedOn());
 }
 
-TEST_F(MessagingTest, TestConnectionInFixture){
+TEST_F(MessagingTest, TestConnectionInFixture) {}
 
-}
-TEST_F(MessagingTest, TestConnectionInFixture2){
+#pragma endregion SetupCheck
 
-}
+TEST_F(MessagingTest, NewOrderSingle) {}

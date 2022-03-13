@@ -12,6 +12,7 @@ _deps
 tmp/
 .vscode/
 .idea/
+.cache/
 cmake-build-debug/
 log/
 build/

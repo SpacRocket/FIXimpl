@@ -23,4 +23,4 @@ public:
     FIX::BfxClient<> client{};
 };
 
-class SimpleMessages : public MessagingTest{};
+class simpleMessages : public MessagingTest{};
