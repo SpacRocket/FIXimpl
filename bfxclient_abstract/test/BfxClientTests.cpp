@@ -25,4 +25,8 @@ TEST_F(MessagingTest, TestConnectionInFixture) {}
 
 #pragma endregion SetupCheck
 
+#pragma region SimpleMessages
+
 TEST_F(MessagingTest, NewOrderSingle) {}
+
+#pragma endregion SimpleMessages
