@@ -45,15 +45,6 @@ public:
   FIX::ClOrdID getCl0rdID();
 
   // Implementation of orders
-  void sendMarketOrderSingle(const std::string symbol, const char side,
-                             const float cashOrderQty,
-                             const char timeInForceCoinbbase);
-  void sendLimitOrderSingle(const std::string symbol, const char side,
-                            const float price, const float orderQty,
-                            const char timeInForceCoinbbase);
-  void sendStopLimitOrderSingle(const std::string symbol, const char side,
-                                const float stopPx, const float orderQty,
-                                const char timeInForceCoinbbase);
 
 protected:
   std::optional<FIX::SessionID> currSessionID;

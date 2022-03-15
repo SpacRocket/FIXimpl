@@ -102,6 +102,8 @@ void BfxApplication::toAdmin(Message &message, const SessionID &sessionID) {
     std::string TestOutput{digestBase64.str()};
     message.setField(FIX::RawDataLength(TestOutput.length()));
     message.setField(8013, "Y");
+
+    this->currSessionID = sessionID;
   }
   message.getTrailer().setField(FIX::CheckSum(message.checkSum()));
 }
@@ -122,96 +124,11 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
 
 void BfxApplication::onMessage(const FIX42::ExecutionReport &argMsg,
                                const FIX::SessionID &argSessionID) {
-  // A structure of an order is being sent to the database
-  FIX::ClOrdID clOrdID;
-
-  // OrdStatus
-  FIX::OrdStatus ordStatus;
-  try {
-    argMsg.get(ordStatus);
-    argMsg.get(clOrdID);
-    if (ordStatus.getValue() == FIX::OrdStatus_REJECTED ||
-        ordStatus.getValue() == FIX::OrdStatus_NEW) {
-      orders[clOrdID].aOrdStatus = ordStatus.getValue();
-    }
-  } catch (...) {
-  }
+  auto argMsg2 = argMsg;
 }
 
 FIX::ClOrdID BfxApplication::getCl0rdID() {
   return FIX::ClOrdID(uuidGenerator.create().toString());
 }
 
-void BfxApplication::sendMarketOrderSingle(const std::string symbol,
-                                           const char side,
-                                           const float cashOrderQty,
-                                           const char timeInForceCoinbbase) {
-  FIX::Symbol aSymbol{symbol};
-  FIX::Side aSide{side};
-  FIX::TransactTime aTransactTime; // Check this part
-  FIX::OrdType aOrdType{'1'};
-  FIX::CashOrderQty aCashOrderQty{(FIX::QTY(cashOrderQty))};
-  FIX::TimeInForce aTimeInForce{timeInForceCoinbbase};
-
-  FIX42::NewOrderSingle order{getCl0rdID(), FIX::HandlInst('2'), aSymbol,
-                              aSide,        aTransactTime,       aOrdType};
-  order.setField(aCashOrderQty);
-  order.setField(aTimeInForce);
-  try {
-    Session::sendToTarget(order, getSessionID().value());
-  } catch (...) {
-  }
-}
-
-void BfxApplication::sendLimitOrderSingle(const std::string symbol,
-                                          const char side, const float price,
-                                          const float orderQty,
-                                          const char timeInForceCoinbbase) {
-  FIX::Symbol aSymbol{symbol};
-  FIX::Side aSide{side};
-  FIX::TransactTime aTransactTime;
-  FIX::OrdType aOrdType{'2'};
-
-  FIX42::NewOrderSingle order{getCl0rdID(), FIX::HandlInst('2'), aSymbol,
-                              aSide,        aTransactTime,       aOrdType};
-
-  FIX::Price aPrice{price};
-  FIX::OrderQty aOrderQty{FIX::QTY(orderQty)};
-  FIX::TimeInForce aTimeInForce{timeInForceCoinbbase};
-
-  order.setField(aPrice);
-  order.setField(aOrderQty);
-  order.setField(aTimeInForce);
-
-  try {
-    Session::sendToTarget(order, getSessionID().value());
-  } catch (...) {
-  }
-}
-void BfxApplication::sendStopLimitOrderSingle(const std::string symbol,
-                                              const char side,
-                                              const float stopPx,
-                                              const float orderQty,
-                                              const char timeInForceCoinbbase) {
-  FIX::Symbol aSymbol{symbol};
-  FIX::Side aSide{side};
-  FIX::TransactTime aTransactTime;
-  FIX::OrdType aOrdType{'4'};
-
-  FIX42::NewOrderSingle order{getCl0rdID(), FIX::HandlInst('2'), aSymbol,
-                              aSide,        aTransactTime,       aOrdType};
-
-  FIX::StopPx aPrice{stopPx};
-  FIX::OrderQty aOrderQty{FIX::QTY(orderQty)};
-  FIX::TimeInForce aTimeInForce{timeInForceCoinbbase};
-
-  order.setField(aPrice);
-  order.setField(aOrderQty);
-  order.setField(aTimeInForce);
-
-  try {
-    Session::sendToTarget(order, getSessionID().value());
-  } catch (...) {
-  }
-}
 } // namespace FIX
