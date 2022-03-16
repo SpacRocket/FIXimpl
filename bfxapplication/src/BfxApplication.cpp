@@ -123,9 +123,7 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
 }
 
 void BfxApplication::onMessage(const FIX42::ExecutionReport &argMsg,
-                               const FIX::SessionID &argSessionID) {
-  auto argMsg2 = argMsg;
-}
+                               const FIX::SessionID &argSessionID) {}
 
 FIX::ClOrdID BfxApplication::getCl0rdID() {
   return FIX::ClOrdID(uuidGenerator.create().toString());

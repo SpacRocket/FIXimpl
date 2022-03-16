@@ -34,10 +34,10 @@ TEST_F(MessagingTest, NewOrderSingleLimit) {
   FIX::ClOrdID aClOrdID(client.application.getCl0rdID());
   order.set(aClOrdID);
 
-  order.set(FIX::Symbol("BTC-EUR"));
+  order.set(FIX::Symbol("BTC-USD"));
   order.set(FIX::Side(FIX::Side_BUY));
   order.set(FIX::Price(2000.0));
-  order.set(FIX::OrderQty(0.001));
+  order.set(FIX::OrderQty(0.3));
   order.set(FIX::OrdType('2'));
   order.set(FIX::TimeInForce('1'));
 
