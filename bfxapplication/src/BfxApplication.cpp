@@ -138,6 +138,17 @@ void BfxApplication::onMessage(const FIX42::ExecutionReport &message,
 
     executionReports.push_back(message);
   }
+
+  else if (aExecType == FIX::ExecType_ORDER_STATUS) {
+    FIX::ClOrdID aClOrdID;
+    message.getField(aClOrdID);
+
+    pendingOrders.erase(
+        std::remove(pendingOrders.begin(), pendingOrders.end(), aClOrdID),
+        pendingOrders.end());
+
+    executionReports.push_back(message);
+  }
 }
 
 FIX::ClOrdID BfxApplication::getCl0rdID() {

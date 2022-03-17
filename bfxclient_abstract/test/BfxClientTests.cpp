@@ -1,6 +1,10 @@
+#include <quickfix/FixFieldNumbers.h>
 #include <quickfix/FixFields.h>
 #include <quickfix/FixValues.h>
+#include <quickfix/fix42/ExecutionReport.h>
+#include <quickfix/fix42/MessageCracker.h>
 #include <quickfix/fix42/NewOrderSingle.h>
+#include <quickfix/fix42/OrderStatusRequest.h>
 
 #include <chrono>
 #include <thread>
@@ -40,7 +44,7 @@ TEST_F(MessagingTest, NewOrderSingleLimit) {
   order.set(FIX::Symbol("BTC-USD"));
   order.set(FIX::Side(FIX::Side_SELL));
   order.set(FIX::Price(500000.3));
-  order.set(FIX::OrderQty(0.000000003));
+  order.set(FIX::OrderQty(0.0));
   order.set(FIX::OrdType('2'));
   order.set(FIX::TimeInForce('1'));
 
@@ -118,6 +122,74 @@ TEST_F(MessagingTest, NewOrderSingleStopLimit) {
     }
   }
   ASSERT_TRUE(true);
+}
+
+TEST_F(MessagingTest, NewOrderStatusRequest) {
+  FIX42::NewOrderSingle order;
+
+  FIX::Symbol aSymbol = FIX::Symbol("BTC-USD");
+  FIX::Side aSide = FIX::Side(FIX::Side_BUY);
+
+  FIX::ClOrdID aClOrdID(client.application.getCl0rdID());
+  client.application.pendingOrders.push_back(aClOrdID);
+
+  auto pendingOrderRef = client.application.pendingOrders;
+
+  order.set(aClOrdID);
+  order.set(aSymbol);
+  order.set(aSide);
+  order.set(FIX::Price(200000.3));
+  order.set(FIX::OrderQty(0.0000003));
+  order.set(FIX::OrdType('2'));
+  order.set(FIX::TimeInForce('1'));
+
+  FIX::Session::sendToTarget(order, client.application.getSessionID().value());
+
+  Poco::Stopwatch stopwatch;
+  stopwatch.start();
+  // Order is in pending order vector.
+  // TODO: Make this a method check if order received a execution report.
+  while (std::find(pendingOrderRef.begin(), pendingOrderRef.end(), aClOrdID) ==
+         pendingOrderRef.end()) {
+    if (stopwatch.elapsedSeconds() > 10) {
+      ASSERT_TRUE(false);
+    }
+  }
+
+  // Find an order with following symbol
+  aClOrdID = client.application.getCl0rdID();
+  FIX42::OrderStatusRequest aOrderStatusRequest(aClOrdID, aSymbol, aSide);
+  pendingOrderRef.push_back(aClOrdID);
+  FIX::Session::sendToTarget(aOrderStatusRequest,
+                             client.application.getSessionID().value());
+
+  stopwatch.restart();
+  while (std::find(pendingOrderRef.begin(), pendingOrderRef.end(), aClOrdID) ==
+         pendingOrderRef.end()) {
+    if (stopwatch.elapsedSeconds() > 10) {
+      ASSERT_TRUE(false);
+    }
+  }
+
+  // Wait for execution report.
+  stopwatch.restart();
+  std::optional<FIX42::ExecutionReport> Status;
+  auto &executionReportsRef = client.application.executionReports;
+
+  // Wait for a execution report, no longer than x time.
+  while (stopwatch.elapsedSeconds() < 10) {
+    auto it = find_if(executionReportsRef.begin(), executionReportsRef.end(),
+                      [&aClOrdID](const FIX42::ExecutionReport &obj) {
+                        FIX::ClOrdID objClOrdID;
+                        obj.get(objClOrdID);
+                        return objClOrdID == aClOrdID;
+                      });
+    if (it != executionReportsRef.end()) {
+      Status = *it;
+    }
+  }
+
+  ASSERT_TRUE(Status.has_value());
 }
 
 #pragma endregion SimpleMessages
