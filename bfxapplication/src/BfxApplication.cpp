@@ -12,6 +12,7 @@
 #include <quickfix/FieldTypes.h>
 #include <quickfix/FixFields.h>
 #include <quickfix/FixValues.h>
+#include <quickfix/fix42/ExecutionReport.h>
 #include <quickfix/fix42/NewOrderSingle.h>
 #include <string_view>
 
@@ -122,11 +123,24 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
   crack(message, sessionID);
 }
 
-void BfxApplication::onMessage(const FIX42::ExecutionReport &argMsg,
-                               const FIX::SessionID &argSessionID) {}
+void BfxApplication::onMessage(const FIX42::ExecutionReport &message,
+                               const FIX::SessionID &) {
+  FIX::ExecType aExecType;
+  message.get(aExecType);
+
+  if (aExecType == FIX::ExecType_NEW) {
+    FIX::ClOrdID aClOrdID;
+    message.getField(aClOrdID);
+
+    pendingOrders.erase(
+        std::remove(pendingOrders.begin(), pendingOrders.end(), aClOrdID),
+        pendingOrders.end());
+
+    executionReports.push_back(message);
+  }
+}
 
 FIX::ClOrdID BfxApplication::getCl0rdID() {
   return FIX::ClOrdID(uuidGenerator.create().toString());
 }
-
 } // namespace FIX

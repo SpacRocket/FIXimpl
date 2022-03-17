@@ -20,6 +20,7 @@
 #include "quickfix/fix42/OrderCancelRequest.h"
 #include <cstdlib>
 #include <queue>
+#include <quickfix/FixFields.h>
 #include <random>
 
 #include "data_structures/OrderTableModel.hpp"
@@ -39,11 +40,12 @@ public:
   void interpretExecutionOrder();
 
   FIX::SessionSettings settings;
-  FIX::OrderTableModel orders;
+
+  std::vector<FIX::ClOrdID> pendingOrders;
+  std::vector<FIX42::ExecutionReport> executionReports;
 
 public:
   FIX::ClOrdID getCl0rdID();
-
   // Implementation of orders
 
 protected:
@@ -71,8 +73,8 @@ private:
       EXCEPT(FIX::FieldNotFound, FIX::IncorrectDataFormat,
              FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
 
-  void onMessage(const FIX42::ExecutionReport &,
-                 const FIX::SessionID &) override;
+  virtual void onMessage(const FIX42::ExecutionReport &message,
+                         const FIX::SessionID &) override;
 
 private:
   Poco::UUIDGenerator uuidGenerator;
