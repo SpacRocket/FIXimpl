@@ -42,9 +42,9 @@ TEST_F(MessagingTest, NewOrderSingleLimit) {
 
   order.set(aClOrdID);
   order.set(FIX::Symbol("BTC-USD"));
-  order.set(FIX::Side(FIX::Side_SELL));
+  order.set(FIX::Side(FIX::Side_BUY));
   order.set(FIX::Price(500000.3));
-  order.set(FIX::OrderQty(0.0));
+  order.set(FIX::OrderQty(0.0003));
   order.set(FIX::OrdType('2'));
   order.set(FIX::TimeInForce('1'));
 
@@ -59,8 +59,7 @@ TEST_F(MessagingTest, NewOrderSingleLimit) {
       ASSERT_TRUE(false);
     }
   }
-  while (true)
-    ASSERT_TRUE(true);
+  ASSERT_TRUE(true);
 }
 
 TEST_F(MessagingTest, NewOrderSingleMarket) {
@@ -73,13 +72,11 @@ TEST_F(MessagingTest, NewOrderSingleMarket) {
 
   order.set(aClOrdID);
   order.set(FIX::Symbol("BTC-USD"));
-  order.set(FIX::Side(FIX::Side_SELL));
-  order.set(FIX::OrderQty(0.000003));
+  order.set(FIX::Side(FIX::Side_BUY));
+  order.set(FIX::OrderQty(0.00003));
   order.set(FIX::OrdType('1'));
 
   FIX::Session::sendToTarget(order, client.application.getSessionID().value());
-  while (true) {
-  }
 
   Poco::Stopwatch stopwatch;
   stopwatch.start();
@@ -89,8 +86,6 @@ TEST_F(MessagingTest, NewOrderSingleMarket) {
     if (stopwatch.elapsedSeconds() > 10) {
       ASSERT_TRUE(false);
     }
-  }
-  while (true) {
   }
   ASSERT_TRUE(true);
 }
@@ -106,7 +101,7 @@ TEST_F(MessagingTest, NewOrderSingleStopLimit) {
   order.set(aClOrdID);
   order.set(FIX::Symbol("BTC-BTC"));
   order.set(FIX::Side(FIX::Side_BUY));
-  order.set(FIX::OrderQty(0.000005));
+  order.set(FIX::OrderQty(0.0005));
   order.set(FIX::OrdType('1'));
   order.set(FIX::StopPx(2000.0));
 
@@ -139,7 +134,7 @@ TEST_F(MessagingTest, NewOrderStatusRequest) {
   order.set(aSymbol);
   order.set(aSide);
   order.set(FIX::Price(200000.3));
-  order.set(FIX::OrderQty(0.0000003));
+  order.set(FIX::OrderQty(0.00003));
   order.set(FIX::OrdType('2'));
   order.set(FIX::TimeInForce('1'));
 
@@ -152,7 +147,7 @@ TEST_F(MessagingTest, NewOrderStatusRequest) {
   while (std::find(pendingOrderRef.begin(), pendingOrderRef.end(), aClOrdID) ==
          pendingOrderRef.end()) {
     if (stopwatch.elapsedSeconds() > 10) {
-      ASSERT_TRUE(false);
+      ASSERT_TRUE(false) << "Assert failed at confirmation of NewOrderSingle";
     }
   }
 
@@ -167,12 +162,13 @@ TEST_F(MessagingTest, NewOrderStatusRequest) {
   while (std::find(pendingOrderRef.begin(), pendingOrderRef.end(), aClOrdID) ==
          pendingOrderRef.end()) {
     if (stopwatch.elapsedSeconds() > 10) {
-      ASSERT_TRUE(false);
+      ASSERT_TRUE(false) << "Assert failed at searching of execution report";
     }
   }
 
   // Wait for execution report.
   stopwatch.restart();
+  stopwatch.start();
   std::optional<FIX42::ExecutionReport> Status;
   auto &executionReportsRef = client.application.executionReports;
 
@@ -186,10 +182,10 @@ TEST_F(MessagingTest, NewOrderStatusRequest) {
                       });
     if (it != executionReportsRef.end()) {
       Status = *it;
+      break;
     }
   }
-
-  ASSERT_TRUE(Status.has_value());
+  ASSERT_TRUE(Status.has_value()) << "Status of an order is not available.";
 }
 
 #pragma endregion SimpleMessages

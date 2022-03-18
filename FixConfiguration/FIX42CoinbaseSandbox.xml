@@ -157,7 +157,7 @@
    <field name='ExecTransType' required='Y' />
    <field name='ExecRefID' required='N' />
    <field name='ExecType' required='Y' />
-   <field name='OrdStatus' required='Y' />
+   <field name='OrdStatus' required='N' />
    <field name='OrdRejReason' required='N' />
    <field name='ExecRestatementReason' required='N' />
    <field name='Account' required='N' />
