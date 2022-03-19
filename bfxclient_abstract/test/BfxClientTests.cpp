@@ -1,3 +1,4 @@
+#include <Poco/Stopwatch.h>
 #include <quickfix/FixFieldNumbers.h>
 #include <quickfix/FixFields.h>
 #include <quickfix/FixValues.h>
@@ -63,6 +64,7 @@ TEST_F(MessagingTest, NewOrderSingleLimit) {
 }
 
 TEST_F(MessagingTest, NewOrderSingleMarket) {
+  // Doing a new order single.
   FIX42::NewOrderSingle order;
 
   FIX::ClOrdID aClOrdID(client.application.getCl0rdID());
@@ -80,7 +82,7 @@ TEST_F(MessagingTest, NewOrderSingleMarket) {
 
   Poco::Stopwatch stopwatch;
   stopwatch.start();
-  // Order is in pending order vector.
+
   while (std::find(pendingOrderRef.begin(), pendingOrderRef.end(), aClOrdID) ==
          pendingOrderRef.end()) {
     if (stopwatch.elapsedSeconds() > 10) {
@@ -120,72 +122,105 @@ TEST_F(MessagingTest, NewOrderSingleStopLimit) {
 }
 
 TEST_F(MessagingTest, NewOrderStatusRequest) {
+  Poco::Stopwatch stopwatch;
+
+  auto &aExecReports{client.application.executionReports};
+  // 1. Doing a new order single.
   FIX42::NewOrderSingle order;
-
-  FIX::Symbol aSymbol = FIX::Symbol("BTC-USD");
-  FIX::Side aSide = FIX::Side(FIX::Side_BUY);
-
-  FIX::ClOrdID aClOrdID(client.application.getCl0rdID());
-  client.application.pendingOrders.push_back(aClOrdID);
+  FIX::ClOrdID aClOrdNewOrderSingle(client.application.getCl0rdID());
+  client.application.pendingOrders.push_back(aClOrdNewOrderSingle);
 
   auto pendingOrderRef = client.application.pendingOrders;
 
-  order.set(aClOrdID);
+  FIX::Symbol aSymbol{"BTC-USD"};
+  FIX::Side aSide{FIX::Side_BUY};
+
+  order.set(aClOrdNewOrderSingle);
   order.set(aSymbol);
   order.set(aSide);
-  order.set(FIX::Price(200000.3));
   order.set(FIX::OrderQty(0.00003));
-  order.set(FIX::OrdType('2'));
-  order.set(FIX::TimeInForce('1'));
+  order.set(FIX::OrdType('1'));
 
   FIX::Session::sendToTarget(order, client.application.getSessionID().value());
 
-  Poco::Stopwatch stopwatch;
   stopwatch.start();
-  // Order is in pending order vector.
-  // TODO: Make this a method check if order received a execution report.
-  while (std::find(pendingOrderRef.begin(), pendingOrderRef.end(), aClOrdID) ==
-         pendingOrderRef.end()) {
+
+  while (std::find(pendingOrderRef.begin(), pendingOrderRef.end(),
+                   aClOrdNewOrderSingle) == pendingOrderRef.end()) {
     if (stopwatch.elapsedSeconds() > 10) {
-      ASSERT_TRUE(false) << "Assert failed at confirmation of NewOrderSingle";
+      ASSERT_TRUE(false);
     }
   }
 
-  // Find an order with following symbol
-  aClOrdID = client.application.getCl0rdID();
-  FIX42::OrderStatusRequest aOrderStatusRequest(aClOrdID, aSymbol, aSide);
-  pendingOrderRef.push_back(aClOrdID);
-  FIX::Session::sendToTarget(aOrderStatusRequest,
-                             client.application.getSessionID().value());
-
+  // 2. Execution report based on ClOrdID of NewOrderSingle.
+  FIX42::ExecutionReport aExecReportNewOrderSingle{};
   stopwatch.restart();
-  while (std::find(pendingOrderRef.begin(), pendingOrderRef.end(), aClOrdID) ==
-         pendingOrderRef.end()) {
-    if (stopwatch.elapsedSeconds() > 10) {
-      ASSERT_TRUE(false) << "Assert failed at searching of execution report";
-    }
-  }
-
-  // Wait for execution report.
-  stopwatch.restart();
-  stopwatch.start();
-  std::optional<FIX42::ExecutionReport> Status;
-  auto &executionReportsRef = client.application.executionReports;
-
-  // Wait for a execution report, no longer than x time.
   while (stopwatch.elapsedSeconds() < 10) {
-    auto it = find_if(executionReportsRef.begin(), executionReportsRef.end(),
-                      [&aClOrdID](const FIX42::ExecutionReport &obj) {
-                        FIX::ClOrdID objClOrdID;
-                        obj.get(objClOrdID);
-                        return objClOrdID == aClOrdID;
-                      });
-    if (it != executionReportsRef.end()) {
-      Status = *it;
+    auto aExecReportsCopy = aExecReports; // This could be improved.
+    auto it{std::find_if(
+        aExecReportsCopy.begin(), aExecReportsCopy.end(),
+        [aClOrdNewOrderSingle](const FIX42::ExecutionReport &obj) -> bool {
+          return obj.getField(FIX::FIELD::ClOrdID) == aClOrdNewOrderSingle;
+        })};
+    if (it != aExecReportsCopy.end()) {
+      aExecReportNewOrderSingle = *it;
       break;
     }
   }
-  ASSERT_TRUE(Status.has_value()) << "Status of an order is not available.";
+
+  // 2.2. Check if there is execution report.
+  ASSERT_TRUE(aExecReportNewOrderSingle.isSetField(FIX::FIELD::ClOrdID))
+      << "Execution Report New Order Single is empty. Might mean that there is "
+         "no matching ExecReportNewOrderSingle."
+      << std::endl;
+
+  // 3. f(ExecutionReportFromNewOrderSingle) -> OrderID.
+  FIX::OrderID aNewOrderSingleID{};
+  aExecReportNewOrderSingle.get(aNewOrderSingleID);
+
+  // 4. Send Order Status Request (H)
+  FIX::ClOrdID aOrderStatusReq_ClOrdID{client.application.getCl0rdID()};
+  FIX42::OrderStatusRequest aOrderStatusRequest(aOrderStatusReq_ClOrdID,
+                                                aSymbol, aSide);
+
+  pendingOrderRef.push_back(aOrderStatusReq_ClOrdID);
+  FIX::Session::sendToTarget(aOrderStatusRequest,
+                             client.application.getSessionID().value());
+
+  // 4.2 Wait for a matching execution report.
+  stopwatch.restart();
+  while (std::find(pendingOrderRef.begin(), pendingOrderRef.end(),
+                   aOrderStatusReq_ClOrdID) == pendingOrderRef.end()) {
+    if (stopwatch.elapsedSeconds() > 10) {
+      ASSERT_TRUE(false)
+          << "no matching execution report for NewOrderSingleStatus"
+          << std::endl;
+    }
+  }
+
+  // 4.3 Read execution report, matching executionReport is defined by ClOrdID
+  // the same as SendingOrderStatusID.
+  // TODO: Try to create a new method out of it
+  FIX42::ExecutionReport aStatusExecutionReport;
+
+  stopwatch.restart();
+  while (stopwatch.elapsedSeconds() < 10) {
+    auto aExecReportsCopy = aExecReports;
+    auto it{std::find_if(
+        aExecReportsCopy.begin(), aExecReportsCopy.end(),
+        [aOrderStatusReq_ClOrdID](const FIX42::ExecutionReport &obj) -> bool {
+          return obj.getField(FIX::FIELD::ClOrdID) == aOrderStatusReq_ClOrdID;
+        })};
+    if (it != aExecReportsCopy.end()) {
+      aStatusExecutionReport = *it;
+      break;
+    }
+  }
+  ASSERT_TRUE(aStatusExecutionReport.isSetField(FIX::FIELD::ClOrdID))
+      << "aStatusExecutionReport isn't filed, the problem might lie with: "
+         "reading of the available messages or lack of response from the server"
+      << std::endl;
+  //---
 }
 
 #pragma endregion SimpleMessages
