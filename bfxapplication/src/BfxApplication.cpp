@@ -16,6 +16,7 @@
 #include <quickfix/FixValues.h>
 #include <quickfix/fix42/ExecutionReport.h>
 #include <quickfix/fix42/NewOrderSingle.h>
+#include <quickfix/fix42/OrderStatusRequest.h>
 #include <string_view>
 
 namespace Poco {
@@ -259,6 +260,33 @@ std::optional<FIX::OrderID> BfxApplication::sendNewOrderSingleStopLimit(
   return executionReport.value().getField(FIX::FIELD::OrderID);
 }
 
+std::optional<FIX::ClOrdID>
+BfxApplication::sendOrderStatusRequest(const FIX::OrderID &orderID,
+                                       const FIX::Symbol &symbol) {
+
+  // Pending order
+  FIX::ClOrdID aClOrdID(getCl0rdID());
+  pendingOrders.push_back(aClOrdID);
+
+  // Prepare message
+  FIX42::OrderStatusRequest order;
+  order.set(aClOrdID);
+  order.set(symbol);
+  order.set(orderID);
+  FIX::Session::sendToTarget(order, getSessionID().value());
+
+  // Order is in pending order vector.
+  if (checkIfOrderIsPending(timeoutExecutionReport, aClOrdID)) {
+    return {};
+  }
+  // Wait for execution report
+  auto executionReport = getExecutionReport(timeoutExecutionReport, aClOrdID);
+  if (executionReport.has_value() == false)
+    return {};
+  // Get orderID
+  return executionReport.value().getField(FIX::FIELD::OrderID);
+}
+
 std::optional<FIX42::ExecutionReport>
 BfxApplication::getExecutionReport(const float timeout,
                                    const FIX::ClOrdID aClOrdID) {
@@ -285,10 +313,11 @@ bool BfxApplication::checkIfOrderIsPending(const float timeout,
   Poco::Stopwatch stopwatch;
   stopwatch.start();
 
-  while (std::find(pendingOrders.begin(), pendingOrders.end(), aClOrdID) ==
-         pendingOrders.end()) {
-    if (stopwatch.elapsedSeconds() > timeout) {
-      return true;
+  while (stopwatch.elapsedSeconds() < timeout) {
+    auto pendingOrdersCopy{pendingOrders};
+    if (std::find(pendingOrders.begin(), pendingOrders.end(), aClOrdID) ==
+        pendingOrders.end()) {
+      return false;
     }
   }
   return false;

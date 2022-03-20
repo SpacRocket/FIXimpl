@@ -55,6 +55,9 @@ public:
                               const FIX::OrderQty &orderQty,
                               const FIX::Price &price,
                               const FIX::StopPx &stopPx);
+  std::optional<FIX::ClOrdID>
+  sendOrderStatusRequest(const FIX::OrderID &orderID,
+                         const FIX::Symbol &symbol);
 
 protected:
   std::optional<FIX::SessionID> currSessionID;
