@@ -47,6 +47,9 @@ public:
   std::optional<FIX::OrderID> sendNewOrderSingleLimit(
       const FIX::Symbol &symbol, const FIX::Side &side, const FIX::Price &price,
       const FIX::OrderQty &orderQty, const FIX::TimeInForce &timeInForce);
+  std::optional<FIX::OrderID>
+  sendNewOrderSingleMarket(const FIX::Symbol &symbol, const FIX::Side &side,
+                           const FIX::OrderQty &orderQty);
 
 protected:
   std::optional<FIX::SessionID> currSessionID;
