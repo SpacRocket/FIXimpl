@@ -116,7 +116,7 @@ TEST_F(MessagingTest, NewOrderSingleStopLimit) {
   auto pendingOrderRef = client.application.pendingOrders;
 
   order.set(aClOrdID);
-  order.set(FIX::Symbol("BTC-BTC"));
+  order.set(FIX::Symbol("BTC-USD"));
   order.set(FIX::Side(FIX::Side_BUY));
   order.set(FIX::OrderQty(0.0005));
   order.set(FIX::OrdType('4'));
@@ -138,8 +138,8 @@ TEST_F(MessagingTest, NewOrderSingleStopLimit) {
 
 TEST_F(MessagingTest, NewOrderSingleStopLimitShort) {
   auto result{client.application.sendNewOrderSingleStopLimit(
-      FIX::Symbol("BTC-USD"), FIX::Side(FIX::Side_BUY), FIX::OrderQty(0.0003),
-      FIX::StopPx(2000.0))};
+      FIX::Symbol("BTC-USD"), FIX::Side(FIX::Side_BUY), FIX::OrderQty(0.003),
+      FIX::Price(30000.0f), FIX::StopPx(2000.0f))};
 
   ASSERT_TRUE(result.has_value());
 }

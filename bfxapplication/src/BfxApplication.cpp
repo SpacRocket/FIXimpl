@@ -150,6 +150,15 @@ void BfxApplication::onMessage(const FIX42::ExecutionReport &message,
         pendingOrders.end());
 
     executionReports.push_back(message);
+  } else if (aExecType == FIX::ExecType_STOPPED) {
+    FIX::ClOrdID aClOrdID;
+    message.getField(aClOrdID);
+
+    pendingOrders.erase(
+        std::remove(pendingOrders.begin(), pendingOrders.end(), aClOrdID),
+        pendingOrders.end());
+
+    executionReports.push_back(message);
   }
 }
 
@@ -221,7 +230,8 @@ BfxApplication::sendNewOrderSingleMarket(const FIX::Symbol &symbol,
 
 std::optional<FIX::OrderID> BfxApplication::sendNewOrderSingleStopLimit(
     const FIX::Symbol &symbol, const FIX::Side &side,
-    const FIX::OrderQty &orderQty, const FIX::StopPx &stopPx) {
+    const FIX::OrderQty &orderQty, const FIX::Price &price,
+    const FIX::StopPx &stopPx) {
   // Pending order
   FIX::ClOrdID aClOrdID(getCl0rdID());
   pendingOrders.push_back(aClOrdID);
@@ -232,6 +242,7 @@ std::optional<FIX::OrderID> BfxApplication::sendNewOrderSingleStopLimit(
   order.set(symbol);
   order.set(side);
   order.set(orderQty);
+  order.set(price);
   order.set(stopPx);
   order.set(FIX::OrdType('4'));
   FIX::Session::sendToTarget(order, getSessionID().value());

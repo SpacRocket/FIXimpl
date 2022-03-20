@@ -53,6 +53,7 @@ public:
   std::optional<FIX::OrderID>
   sendNewOrderSingleStopLimit(const FIX::Symbol &symbol, const FIX::Side &side,
                               const FIX::OrderQty &orderQty,
+                              const FIX::Price &price,
                               const FIX::StopPx &stopPx);
 
 protected:
