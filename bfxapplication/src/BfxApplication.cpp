@@ -219,6 +219,35 @@ BfxApplication::sendNewOrderSingleMarket(const FIX::Symbol &symbol,
   return executionReport.value().getField(FIX::FIELD::OrderID);
 }
 
+std::optional<FIX::OrderID> BfxApplication::sendNewOrderSingleStopLimit(
+    const FIX::Symbol &symbol, const FIX::Side &side,
+    const FIX::OrderQty &orderQty, const FIX::StopPx &stopPx) {
+  // Pending order
+  FIX::ClOrdID aClOrdID(getCl0rdID());
+  pendingOrders.push_back(aClOrdID);
+
+  // Prepare message
+  FIX42::NewOrderSingle order;
+  order.set(aClOrdID);
+  order.set(symbol);
+  order.set(side);
+  order.set(orderQty);
+  order.set(stopPx);
+  order.set(FIX::OrdType('4'));
+  FIX::Session::sendToTarget(order, getSessionID().value());
+
+  // Order is in pending order vector.
+  if (checkIfOrderIsPending(timeoutExecutionReport, aClOrdID)) {
+    return {};
+  }
+  // Wait for execution report
+  auto executionReport = getExecutionReport(timeoutExecutionReport, aClOrdID);
+  if (executionReport.has_value() == false)
+    return {};
+  // Get orderID
+  return executionReport.value().getField(FIX::FIELD::OrderID);
+}
+
 std::optional<FIX42::ExecutionReport>
 BfxApplication::getExecutionReport(const float timeout,
                                    const FIX::ClOrdID aClOrdID) {

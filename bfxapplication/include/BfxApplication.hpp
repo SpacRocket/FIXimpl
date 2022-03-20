@@ -50,6 +50,10 @@ public:
   std::optional<FIX::OrderID>
   sendNewOrderSingleMarket(const FIX::Symbol &symbol, const FIX::Side &side,
                            const FIX::OrderQty &orderQty);
+  std::optional<FIX::OrderID>
+  sendNewOrderSingleStopLimit(const FIX::Symbol &symbol, const FIX::Side &side,
+                              const FIX::OrderQty &orderQty,
+                              const FIX::StopPx &stopPx);
 
 protected:
   std::optional<FIX::SessionID> currSessionID;

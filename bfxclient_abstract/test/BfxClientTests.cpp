@@ -119,7 +119,7 @@ TEST_F(MessagingTest, NewOrderSingleStopLimit) {
   order.set(FIX::Symbol("BTC-BTC"));
   order.set(FIX::Side(FIX::Side_BUY));
   order.set(FIX::OrderQty(0.0005));
-  order.set(FIX::OrdType('1'));
+  order.set(FIX::OrdType('4'));
   order.set(FIX::StopPx(2000.0));
 
   FIX::Session::sendToTarget(order, client.application.getSessionID().value());
@@ -134,6 +134,14 @@ TEST_F(MessagingTest, NewOrderSingleStopLimit) {
     }
   }
   ASSERT_TRUE(true);
+}
+
+TEST_F(MessagingTest, NewOrderSingleStopLimitShort) {
+  auto result{client.application.sendNewOrderSingleStopLimit(
+      FIX::Symbol("BTC-USD"), FIX::Side(FIX::Side_BUY), FIX::OrderQty(0.0003),
+      FIX::StopPx(2000.0))};
+
+  ASSERT_TRUE(result.has_value());
 }
 
 TEST_F(MessagingTest, NewOrderStatusRequest) {
