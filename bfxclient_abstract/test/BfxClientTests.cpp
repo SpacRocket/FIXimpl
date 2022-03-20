@@ -63,6 +63,14 @@ TEST_F(MessagingTest, NewOrderSingleLimit) {
   ASSERT_TRUE(true);
 }
 
+TEST_F(MessagingTest, NewOrderSingleLimitShort) {
+  auto result{client.application.sendNewOrderSingleLimit(
+      FIX::Symbol("BTC-USD"), FIX::Side(FIX::Side_BUY), FIX::Price(50000.3),
+      FIX::OrderQty(0.0003), FIX::TimeInForce('1'))};
+
+  ASSERT_TRUE(result.has_value());
+}
+
 TEST_F(MessagingTest, NewOrderSingleMarket) {
   // Doing a new order single.
   FIX42::NewOrderSingle order;

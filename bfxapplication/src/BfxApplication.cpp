@@ -7,9 +7,11 @@
 #include "Poco/SHA2Engine.h"
 #include "Poco/StreamCopier.h"
 
+#include <Poco/Stopwatch.h>
 #include <istream>
 
 #include <quickfix/FieldTypes.h>
+#include <quickfix/FixFieldNumbers.h>
 #include <quickfix/FixFields.h>
 #include <quickfix/FixValues.h>
 #include <quickfix/fix42/ExecutionReport.h>
@@ -153,5 +155,73 @@ void BfxApplication::onMessage(const FIX42::ExecutionReport &message,
 
 FIX::ClOrdID BfxApplication::getCl0rdID() {
   return FIX::ClOrdID(uuidGenerator.create().toString());
+}
+
+std::optional<FIX::OrderID> BfxApplication::sendNewOrderSingleLimit(
+    const FIX::Symbol &symbol, const FIX::Side &side, const FIX::Price &price,
+    const FIX::OrderQty &orderQty, const FIX::TimeInForce &timeInForce) {
+
+  // Pending order
+  FIX::ClOrdID aClOrdID(getCl0rdID());
+  pendingOrders.push_back(aClOrdID);
+
+  // Prepare message
+  FIX42::NewOrderSingle order;
+  order.set(aClOrdID);
+  order.set(symbol);
+  order.set(side);
+  order.set(price);
+  order.set(orderQty);
+  order.set(timeInForce);
+  order.set(FIX::OrdType('2'));
+  FIX::Session::sendToTarget(order, getSessionID().value());
+
+  // Order is in pending order vector.
+  if (checkIfOrderIsPending(timeoutExecutionReport, aClOrdID)) {
+    return {};
+  }
+
+  // Wait for execution report
+  auto executionReport = getExecutionReport(timeoutExecutionReport, aClOrdID);
+  if (executionReport.has_value() == false)
+    return {};
+
+  // Get orderID
+  return executionReport.value().getField(FIX::FIELD::OrderID);
+}
+
+std::optional<FIX42::ExecutionReport>
+BfxApplication::getExecutionReport(const float timeout,
+                                   const FIX::ClOrdID aClOrdID) {
+  Poco::Stopwatch stopwatch;
+  stopwatch.start();
+
+  stopwatch.restart();
+  while (stopwatch.elapsedSeconds() < timeoutExecutionReport) {
+    auto aExecReportsCopy = executionReports;
+    auto it{std::find_if(aExecReportsCopy.begin(), aExecReportsCopy.end(),
+                         [aClOrdID](const FIX42::ExecutionReport &obj) -> bool {
+                           return obj.getField(FIX::FIELD::ClOrdID) == aClOrdID;
+                         })};
+    if (it != aExecReportsCopy.end()) {
+      return *it;
+      break;
+    }
+  }
+  return {};
+}
+
+bool BfxApplication::checkIfOrderIsPending(const float timeout,
+                                           const FIX::ClOrdID &aClOrdID) {
+  Poco::Stopwatch stopwatch;
+  stopwatch.start();
+
+  while (std::find(pendingOrders.begin(), pendingOrders.end(), aClOrdID) ==
+         pendingOrders.end()) {
+    if (stopwatch.elapsedSeconds() > timeout) {
+      return true;
+    }
+  }
+  return false;
 }
 } // namespace FIX

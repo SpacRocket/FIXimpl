@@ -36,9 +36,6 @@ public:
   BfxApplication();
   virtual ~BfxApplication() {}
   std::optional<FIX::SessionID> getSessionID() { return currSessionID; }
-
-  void interpretExecutionOrder();
-
   FIX::SessionSettings settings;
 
   std::vector<FIX::ClOrdID> pendingOrders;
@@ -46,10 +43,18 @@ public:
 
 public:
   FIX::ClOrdID getCl0rdID();
-  // Implementation of orders
+
+  std::optional<FIX::OrderID> sendNewOrderSingleLimit(
+      const FIX::Symbol &symbol, const FIX::Side &side, const FIX::Price &price,
+      const FIX::OrderQty &orderQty, const FIX::TimeInForce &timeInForce);
 
 protected:
   std::optional<FIX::SessionID> currSessionID;
+
+  bool checkIfOrderIsPending(const float timeout, const FIX::ClOrdID &aClOrdID);
+
+  std::optional<FIX42::ExecutionReport>
+  getExecutionReport(const float timeout, const FIX::ClOrdID aClOrdID);
 
 private:
   //--- Message Handlers ---
@@ -78,6 +83,7 @@ private:
 
 private:
   Poco::UUIDGenerator uuidGenerator;
+  float timeoutExecutionReport = 5.0f;
 };
 
 } // namespace FIX
