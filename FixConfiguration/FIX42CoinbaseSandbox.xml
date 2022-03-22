@@ -243,7 +243,7 @@
    <field name='OrderID' required='Y' />
    <field name='SecondaryOrderID' required='N' />
    <field name='ClOrdID' required='Y' />
-   <field name='OrigClOrdID' required='Y' />
+   <field name='OrigClOrdID' required='N' />
    <field name='OrdStatus' required='Y' />
    <field name='ClientID' required='N' />
    <field name='ExecBroker' required='N' />

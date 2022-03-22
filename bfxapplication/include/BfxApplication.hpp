@@ -16,11 +16,13 @@
 #include "quickfix/fix42/ExecutionReport.h"
 #include "quickfix/fix42/Logon.h"
 #include "quickfix/fix42/NewOrderSingle.h"
+#include "quickfix/fix42/OrderCancelReject.h"
 #include "quickfix/fix42/OrderCancelReplaceRequest.h"
 #include "quickfix/fix42/OrderCancelRequest.h"
 #include <cstdlib>
 #include <queue>
 #include <quickfix/FixFields.h>
+#include <quickfix/fix42/MessageCracker.h>
 #include <random>
 
 #include "data_structures/OrderTableModel.hpp"
@@ -40,6 +42,7 @@ public:
 
   std::vector<FIX::ClOrdID> pendingOrders;
   std::vector<FIX42::ExecutionReport> executionReports;
+  std::vector<FIX42::OrderCancelReject> orderCancelRejects;
 
 public:
   FIX::ClOrdID getCl0rdID();
@@ -59,13 +62,20 @@ public:
   sendOrderStatusRequest(const FIX::OrderID &orderID,
                          const FIX::Symbol &symbol);
 
+  void sendOrderCancelRequest(const FIX::OrigClOrdID &origClOrdID,
+                              const FIX::Symbol &symbol, const FIX::Text &text);
+
+  std::optional<FIX42::ExecutionReport>
+  getExecutionReport(const float timeout, const FIX::ClOrdID aClOrdID);
+  std::optional<FIX42::ExecutionReport>
+  getExecutionReport(const float timeout, const FIX::OrderID aOrderID);
+  std::optional<FIX42::OrderCancelReject>
+  getOrderCancelReject(const float timeout, const FIX::ClOrdID aClOrdID);
+
 protected:
   std::optional<FIX::SessionID> currSessionID;
 
   bool checkIfOrderIsPending(const float timeout, const FIX::ClOrdID &aClOrdID);
-
-  std::optional<FIX42::ExecutionReport>
-  getExecutionReport(const float timeout, const FIX::ClOrdID aClOrdID);
 
 private:
   //--- Message Handlers ---
@@ -90,6 +100,8 @@ private:
              FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
 
   virtual void onMessage(const FIX42::ExecutionReport &message,
+                         const FIX::SessionID &) override;
+  virtual void onMessage(const FIX42::OrderCancelReject &message,
                          const FIX::SessionID &) override;
 
 private:

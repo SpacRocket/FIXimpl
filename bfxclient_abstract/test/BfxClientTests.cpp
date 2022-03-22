@@ -164,4 +164,32 @@ TEST_F(MessagingTest, NewOrderStatusRequest) {
       << "aExecReport_statusRequest isn't set optional isn't set";
 }
 
+TEST_F(MessagingTest, OrderCancelRequest) {
+  // Create an order
+  FIX::Symbol aSymbol("BTC-USD");
+  FIX::Side aSide(FIX::Side_BUY);
+
+  auto aNewOrderSingle_OrderID{client.application.sendNewOrderSingleLimit(
+      aSymbol, aSide, FIX::Price(20000), FIX::OrderQty(0.003),
+      FIX::TimeInForce('1'))};
+  ASSERT_TRUE(aNewOrderSingle_OrderID.has_value())
+      << "NewOrderSingle_OrderID optional isn't set";
+
+  auto aExecutionReportForNewOrderSingle{client.application.getExecutionReport(
+      5.0f, aNewOrderSingle_OrderID.value())};
+  ASSERT_TRUE(aExecutionReportForNewOrderSingle.has_value())
+      << "Execution for new order doesn't exist";
+
+  ASSERT_TRUE(
+      aExecutionReportForNewOrderSingle.value().isSetField(FIX::FIELD::ClOrdID))
+      << "ClOrdID not set";
+
+  FIX::OrigClOrdID aOrigClOrdID(
+      aExecutionReportForNewOrderSingle.value().getField(FIX::FIELD::ClOrdID));
+
+  // Send a cancel request
+  client.application.sendOrderCancelRequest(aOrigClOrdID, aSymbol,
+                                            FIX::Text("REMOVE"));
+}
+
 #pragma endregion SimpleMessages

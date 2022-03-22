@@ -16,6 +16,7 @@
 #include <quickfix/FixValues.h>
 #include <quickfix/fix42/ExecutionReport.h>
 #include <quickfix/fix42/NewOrderSingle.h>
+#include <quickfix/fix42/OrderCancelRequest.h>
 #include <quickfix/fix42/OrderStatusRequest.h>
 #include <string_view>
 
@@ -131,7 +132,11 @@ void BfxApplication::onMessage(const FIX42::ExecutionReport &message,
   FIX::ExecType aExecType;
   message.get(aExecType);
 
-  if (aExecType == FIX::ExecType_NEW) {
+  if (aExecType == FIX::ExecType_NEW ||
+      aExecType == FIX::ExecType_ORDER_STATUS ||
+      aExecType == FIX::ExecType_ORDER_STATUS ||
+      aExecType == FIX::ExecType_STOPPED ||
+      aExecType == FIX::ExecType_CANCELED) {
     FIX::ClOrdID aClOrdID;
     message.getField(aClOrdID);
 
@@ -141,26 +146,18 @@ void BfxApplication::onMessage(const FIX42::ExecutionReport &message,
 
     executionReports.push_back(message);
   }
+}
 
-  else if (aExecType == FIX::ExecType_ORDER_STATUS) {
-    FIX::ClOrdID aClOrdID;
-    message.getField(aClOrdID);
+void BfxApplication::onMessage(const FIX42::OrderCancelReject &message,
+                               const FIX::SessionID &) {
+  FIX::ClOrdID aClOrdID;
+  message.getField(aClOrdID);
 
-    pendingOrders.erase(
-        std::remove(pendingOrders.begin(), pendingOrders.end(), aClOrdID),
-        pendingOrders.end());
+  pendingOrders.erase(
+      std::remove(pendingOrders.begin(), pendingOrders.end(), aClOrdID),
+      pendingOrders.end());
 
-    executionReports.push_back(message);
-  } else if (aExecType == FIX::ExecType_STOPPED) {
-    FIX::ClOrdID aClOrdID;
-    message.getField(aClOrdID);
-
-    pendingOrders.erase(
-        std::remove(pendingOrders.begin(), pendingOrders.end(), aClOrdID),
-        pendingOrders.end());
-
-    executionReports.push_back(message);
-  }
+  orderCancelRejects.push_back(message);
 }
 
 FIX::ClOrdID BfxApplication::getCl0rdID() {
@@ -284,7 +281,23 @@ BfxApplication::sendOrderStatusRequest(const FIX::OrderID &orderID,
   if (executionReport.has_value() == false)
     return {};
   // Get orderID
-  return executionReport.value().getField(FIX::FIELD::OrderID);
+  return executionReport.value().getField(FIX::FIELD::ClOrdID);
+}
+
+void BfxApplication::sendOrderCancelRequest(const FIX::OrigClOrdID &origClOrdID,
+                                            const FIX::Symbol &symbol,
+                                            const FIX::Text &text) {
+  // Pending order
+  FIX::ClOrdID aClOrdID(getCl0rdID());
+  pendingOrders.push_back(aClOrdID);
+
+  // Prepare message
+  FIX42::OrderCancelRequest order;
+  order.set(aClOrdID);
+  order.set(symbol);
+  order.set(origClOrdID);
+  order.set(text);
+  FIX::Session::sendToTarget(order, getSessionID().value());
 }
 
 std::optional<FIX42::ExecutionReport>
@@ -293,12 +306,31 @@ BfxApplication::getExecutionReport(const float timeout,
   Poco::Stopwatch stopwatch;
   stopwatch.start();
 
-  stopwatch.restart();
   while (stopwatch.elapsedSeconds() < timeoutExecutionReport) {
     auto aExecReportsCopy = executionReports;
     auto it{std::find_if(aExecReportsCopy.begin(), aExecReportsCopy.end(),
                          [aClOrdID](const FIX42::ExecutionReport &obj) -> bool {
                            return obj.getField(FIX::FIELD::ClOrdID) == aClOrdID;
+                         })};
+    if (it != aExecReportsCopy.end()) {
+      return *it;
+      break;
+    }
+  }
+  return {};
+}
+
+std::optional<FIX42::ExecutionReport>
+BfxApplication::getExecutionReport(const float timeout,
+                                   const FIX::OrderID aOrderID) {
+  Poco::Stopwatch stopwatch;
+  stopwatch.start();
+
+  while (stopwatch.elapsedSeconds() < timeoutExecutionReport) {
+    auto aExecReportsCopy = executionReports;
+    auto it{std::find_if(aExecReportsCopy.begin(), aExecReportsCopy.end(),
+                         [aOrderID](const FIX42::ExecutionReport &obj) -> bool {
+                           return obj.getField(FIX::FIELD::OrderID) == aOrderID;
                          })};
     if (it != aExecReportsCopy.end()) {
       return *it;
@@ -322,4 +354,5 @@ bool BfxApplication::checkIfOrderIsPending(const float timeout,
   }
   return false;
 }
+
 } // namespace FIX
