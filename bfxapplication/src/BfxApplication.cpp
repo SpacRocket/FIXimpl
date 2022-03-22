@@ -7,45 +7,48 @@
 #include "Poco/SHA2Engine.h"
 #include "Poco/StreamCopier.h"
 
+#include <Poco/Stopwatch.h>
 #include <istream>
 
+#include <quickfix/FieldTypes.h>
+#include <quickfix/FixFieldNumbers.h>
+#include <quickfix/FixFields.h>
+#include <quickfix/FixValues.h>
+#include <quickfix/fix42/ExecutionReport.h>
+#include <quickfix/fix42/NewOrderSingle.h>
+#include <quickfix/fix42/OrderCancelRequest.h>
+#include <quickfix/fix42/OrderStatusRequest.h>
 #include <string_view>
 
-namespace Poco{
+namespace Poco {
 class SHA256Engine : public Poco::SHA2Engine {
 public:
-	enum
-	{
-		BLOCK_SIZE = 64,
-		DIGEST_SIZE = 32
-	};
-	SHA256Engine() :Poco::SHA2Engine(Poco::SHA2Engine::ALGORITHM::SHA_256) {
-	}
-	virtual ~SHA256Engine() {
-	}
+  enum { BLOCK_SIZE = 64, DIGEST_SIZE = 32 };
+  SHA256Engine() : Poco::SHA2Engine(Poco::SHA2Engine::ALGORITHM::SHA_256) {}
+  virtual ~SHA256Engine() {}
 };
-}
-
+} // namespace Poco
 
 namespace FIX {
 
-BfxApplication::BfxApplication(){
-  //Boilerplate
-  gen = std::mt19937(time(nullptr));
-  intDist = std::uniform_int_distribution<int>(0, INT_MAX);
+BfxApplication::BfxApplication() {
+  // Boilerplate
 }
 
 void BfxApplication::onCreate(const SessionID &sessionID) {
-  std::cout << YELLOW << "Session created - Session: " << RESET << sessionID.toString() << "\n";
+  std::cout << YELLOW << "Session created - Session: " << RESET
+            << sessionID.toString() << "\n";
   this->currSessionID = sessionID;
 };
 
 void BfxApplication::onLogon(const SessionID &sessionID) {
-  std::cout << GREEN << "Logon - Session: " << RESET << sessionID.toString() << "\n";
+  std::cout << GREEN << "Logon - Session: " << RESET << sessionID.toString()
+            << "\n";
 }
 
 void BfxApplication::onLogout(const SessionID &sessionID) {
-  std::cout << RED << "Logout - Session: " << RESET << sessionID.toString() << "\n";
+  std::cout << RED << "Logout - Session: " << RESET << sessionID.toString()
+            << "\n";
 }
 
 void BfxApplication::toAdmin(Message &message, const SessionID &sessionID) {
@@ -61,42 +64,42 @@ void BfxApplication::toAdmin(Message &message, const SessionID &sessionID) {
     FIX::RawData rawData;
     std::stringstream preHashStringStream;
 
-	  FIX::UtcTimeStamp now;
-	  message.getHeader().setField(FIX::SendingTime(now, false));
+    FIX::UtcTimeStamp now;
+    message.getHeader().setField(FIX::SendingTime(now, false));
 
-    preHashStringStream 
-    << message.getHeader().getField(FIX::FIELD::SendingTime) << '\x01'
-    << msgType << '\x01'
-    << message.getHeader().getField(FIX::FIELD::MsgSeqNum) << '\x01'
-    << message.getHeader().getField(FIX::FIELD::SenderCompID) << '\x01'
-    << message.getHeader().getField(FIX::FIELD::TargetCompID) << '\x01'
-    << password;
+    preHashStringStream
+        << message.getHeader().getField(FIX::FIELD::SendingTime) << '\x01'
+        << msgType << '\x01'
+        << message.getHeader().getField(FIX::FIELD::MsgSeqNum) << '\x01'
+        << message.getHeader().getField(FIX::FIELD::SenderCompID) << '\x01'
+        << message.getHeader().getField(FIX::FIELD::TargetCompID) << '\x01'
+        << password;
     std::string preHashString{preHashStringStream.str()};
-    
+
     /*
     HMAC sha256 using base64-decoded secretkey, on prehashstring
     then base encode hmac sha256 digest output
     */
-    
-    //Decode apiSecret
+
+    // Decode apiSecret
     std::istringstream apiSecretStream(apiSecret);
     Poco::Base64Decoder b64apiSecret(apiSecretStream);
     std::string decodedSecret;
     Poco::StreamCopier::copyToString(b64apiSecret, decodedSecret);
 
-    //HMAC sha256
+    // HMAC sha256
     Poco::HMACEngine<Poco::SHA256Engine> signingEngine(decodedSecret);
     signingEngine.update(preHashString);
-    auto digest = signingEngine.digest(); 
+    auto digest = signingEngine.digest();
 
     std::ostringstream digestBase64;
     Poco::Base64Encoder base64Encoder(digestBase64);
-    base64Encoder.write(reinterpret_cast<char*>(&digest[0]), digest.size());
+    base64Encoder.write(reinterpret_cast<char *>(&digest[0]), digest.size());
     base64Encoder.close();
 
     rawData.setString(digestBase64.str());
-  
-    //Fields set according to the table
+
+    // Fields set according to the table
     message.setField(FIX::EncryptMethod(0));
     message.setField(FIX::HeartBtInt(30));
     message.setField(FIX::Password(password));
@@ -104,6 +107,8 @@ void BfxApplication::toAdmin(Message &message, const SessionID &sessionID) {
     std::string TestOutput{digestBase64.str()};
     message.setField(FIX::RawDataLength(TestOutput.length()));
     message.setField(8013, "Y");
+
+    this->currSessionID = sessionID;
   }
   message.getTrailer().setField(FIX::CheckSum(message.checkSum()));
 }
@@ -122,39 +127,232 @@ void BfxApplication::fromApp(const Message &message, const SessionID &sessionID)
   crack(message, sessionID);
 }
 
-void BfxApplication::onMessage( const FIX42::ExecutionReport& argMsg, const FIX::SessionID& argSessionID)
-{ 
-  //A structure of an order is being sent to the database
-  FIX::ClOrdID clOrdID;
+void BfxApplication::onMessage(const FIX42::ExecutionReport &message,
+                               const FIX::SessionID &) {
+  FIX::ExecType aExecType;
+  message.get(aExecType);
 
-  //OrdStatus
-  FIX::OrdStatus ordStatus;
-  try{
-    argMsg.get(ordStatus);
-    argMsg.get(clOrdID);
-    if(ordStatus.getValue() == FIX::OrdStatus_REJECTED || ordStatus.getValue() == FIX::OrdStatus_NEW){
-      orders[clOrdID].aOrdStatus = ordStatus.getValue();
+  if (aExecType == FIX::ExecType_NEW ||
+      aExecType == FIX::ExecType_ORDER_STATUS ||
+      aExecType == FIX::ExecType_ORDER_STATUS ||
+      aExecType == FIX::ExecType_STOPPED ||
+      aExecType == FIX::ExecType_CANCELED) {
+    FIX::ClOrdID aClOrdID;
+    message.getField(aClOrdID);
+
+    pendingOrders.erase(
+        std::remove(pendingOrders.begin(), pendingOrders.end(), aClOrdID),
+        pendingOrders.end());
+
+    executionReports.push_back(message);
+  }
+}
+
+void BfxApplication::onMessage(const FIX42::OrderCancelReject &message,
+                               const FIX::SessionID &) {
+  FIX::ClOrdID aClOrdID;
+  message.getField(aClOrdID);
+
+  pendingOrders.erase(
+      std::remove(pendingOrders.begin(), pendingOrders.end(), aClOrdID),
+      pendingOrders.end());
+
+  orderCancelRejects.push_back(message);
+}
+
+FIX::ClOrdID BfxApplication::getCl0rdID() {
+  return FIX::ClOrdID(uuidGenerator.create().toString());
+}
+
+std::optional<FIX::OrderID> BfxApplication::sendNewOrderSingleLimit(
+    const FIX::Symbol &symbol, const FIX::Side &side, const FIX::Price &price,
+    const FIX::OrderQty &orderQty, const FIX::TimeInForce &timeInForce) {
+
+  // Pending order
+  FIX::ClOrdID aClOrdID(getCl0rdID());
+  pendingOrders.push_back(aClOrdID);
+
+  // Prepare message
+  FIX42::NewOrderSingle order;
+  order.set(aClOrdID);
+  order.set(symbol);
+  order.set(side);
+  order.set(price);
+  order.set(orderQty);
+  order.set(timeInForce);
+  order.set(FIX::OrdType('2'));
+  FIX::Session::sendToTarget(order, getSessionID().value());
+
+  // Order is in pending order vector.
+  if (checkIfOrderIsPending(timeoutExecutionReport, aClOrdID)) {
+    return {};
+  }
+
+  // Wait for execution report
+  auto executionReport = getExecutionReport(timeoutExecutionReport, aClOrdID);
+  if (executionReport.has_value() == false)
+    return {};
+
+  // Get orderID
+  return executionReport.value().getField(FIX::FIELD::OrderID);
+}
+
+std::optional<FIX::OrderID>
+BfxApplication::sendNewOrderSingleMarket(const FIX::Symbol &symbol,
+                                         const FIX::Side &side,
+                                         const FIX::OrderQty &orderQty) {
+  // Pending order
+  FIX::ClOrdID aClOrdID(getCl0rdID());
+  pendingOrders.push_back(aClOrdID);
+
+  // Prepare message
+  FIX42::NewOrderSingle order;
+  order.set(aClOrdID);
+  order.set(symbol);
+  order.set(side);
+  order.set(orderQty);
+  order.set(FIX::OrdType('1'));
+  FIX::Session::sendToTarget(order, getSessionID().value());
+
+  // Order is in pending order vector.
+  if (checkIfOrderIsPending(timeoutExecutionReport, aClOrdID)) {
+    return {};
+  }
+  // Wait for execution report
+  auto executionReport = getExecutionReport(timeoutExecutionReport, aClOrdID);
+  if (executionReport.has_value() == false)
+    return {};
+  // Get orderID
+  return executionReport.value().getField(FIX::FIELD::OrderID);
+}
+
+std::optional<FIX::OrderID> BfxApplication::sendNewOrderSingleStopLimit(
+    const FIX::Symbol &symbol, const FIX::Side &side,
+    const FIX::OrderQty &orderQty, const FIX::Price &price,
+    const FIX::StopPx &stopPx) {
+  // Pending order
+  FIX::ClOrdID aClOrdID(getCl0rdID());
+  pendingOrders.push_back(aClOrdID);
+
+  // Prepare message
+  FIX42::NewOrderSingle order;
+  order.set(aClOrdID);
+  order.set(symbol);
+  order.set(side);
+  order.set(orderQty);
+  order.set(price);
+  order.set(stopPx);
+  order.set(FIX::OrdType('4'));
+  FIX::Session::sendToTarget(order, getSessionID().value());
+
+  // Order is in pending order vector.
+  if (checkIfOrderIsPending(timeoutExecutionReport, aClOrdID)) {
+    return {};
+  }
+  // Wait for execution report
+  auto executionReport = getExecutionReport(timeoutExecutionReport, aClOrdID);
+  if (executionReport.has_value() == false)
+    return {};
+  // Get orderID
+  return executionReport.value().getField(FIX::FIELD::OrderID);
+}
+
+std::optional<FIX::ClOrdID>
+BfxApplication::sendOrderStatusRequest(const FIX::OrderID &orderID,
+                                       const FIX::Symbol &symbol) {
+
+  // Pending order
+  FIX::ClOrdID aClOrdID(getCl0rdID());
+  pendingOrders.push_back(aClOrdID);
+
+  // Prepare message
+  FIX42::OrderStatusRequest order;
+  order.set(aClOrdID);
+  order.set(symbol);
+  order.set(orderID);
+  FIX::Session::sendToTarget(order, getSessionID().value());
+
+  // Order is in pending order vector.
+  if (checkIfOrderIsPending(timeoutExecutionReport, aClOrdID)) {
+    return {};
+  }
+  // Wait for execution report
+  auto executionReport = getExecutionReport(timeoutExecutionReport, aClOrdID);
+  if (executionReport.has_value() == false)
+    return {};
+  // Get orderID
+  return executionReport.value().getField(FIX::FIELD::ClOrdID);
+}
+
+void BfxApplication::sendOrderCancelRequest(const FIX::OrigClOrdID &origClOrdID,
+                                            const FIX::Symbol &symbol,
+                                            const FIX::Text &text) {
+  // Pending order
+  FIX::ClOrdID aClOrdID(getCl0rdID());
+  pendingOrders.push_back(aClOrdID);
+
+  // Prepare message
+  FIX42::OrderCancelRequest order;
+  order.set(aClOrdID);
+  order.set(symbol);
+  order.set(origClOrdID);
+  order.set(text);
+  FIX::Session::sendToTarget(order, getSessionID().value());
+}
+
+std::optional<FIX42::ExecutionReport>
+BfxApplication::getExecutionReport(const float timeout,
+                                   const FIX::ClOrdID aClOrdID) {
+  Poco::Stopwatch stopwatch;
+  stopwatch.start();
+
+  while (stopwatch.elapsedSeconds() < timeoutExecutionReport) {
+    auto aExecReportsCopy = executionReports;
+    auto it{std::find_if(aExecReportsCopy.begin(), aExecReportsCopy.end(),
+                         [aClOrdID](const FIX42::ExecutionReport &obj) -> bool {
+                           return obj.getField(FIX::FIELD::ClOrdID) == aClOrdID;
+                         })};
+    if (it != aExecReportsCopy.end()) {
+      return *it;
+      break;
     }
-  }catch( ... ){}
+  }
+  return {};
 }
 
-// Helper methods
-FIX::TransactTime BfxApplication::getCurrentTransactTime() {
-  using namespace std::chrono;
-  using date::operator<<;
+std::optional<FIX42::ExecutionReport>
+BfxApplication::getExecutionReport(const float timeout,
+                                   const FIX::OrderID aOrderID) {
+  Poco::Stopwatch stopwatch;
+  stopwatch.start();
 
-  auto tp = system_clock::now();
-  std::stringstream utcTimeStamp;
-  utcTimeStamp << tp;
-  std::stringstream currentTime;
-  FIX::TransactTime transactTime;
-  transactTime.setString(currentTime.str());
-
-  return transactTime;
+  while (stopwatch.elapsedSeconds() < timeoutExecutionReport) {
+    auto aExecReportsCopy = executionReports;
+    auto it{std::find_if(aExecReportsCopy.begin(), aExecReportsCopy.end(),
+                         [aOrderID](const FIX42::ExecutionReport &obj) -> bool {
+                           return obj.getField(FIX::FIELD::OrderID) == aOrderID;
+                         })};
+    if (it != aExecReportsCopy.end()) {
+      return *it;
+      break;
+    }
+  }
+  return {};
 }
 
-FIX::ClOrdID BfxApplication::getCl0rdID(){
-  return FIX::ClOrdID(std::to_string(intDist(gen)));
+bool BfxApplication::checkIfOrderIsPending(const float timeout,
+                                           const FIX::ClOrdID &aClOrdID) {
+  Poco::Stopwatch stopwatch;
+  stopwatch.start();
+
+  while (stopwatch.elapsedSeconds() < timeout) {
+    auto pendingOrdersCopy{pendingOrders};
+    if (std::find(pendingOrders.begin(), pendingOrders.end(), aClOrdID) ==
+        pendingOrders.end()) {
+      return false;
+    }
+  }
+  return false;
 }
 
-}  // namespace FIX
+} // namespace FIX
