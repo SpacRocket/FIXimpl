@@ -1,16 +1,58 @@
 syntax = "proto3";
 //proto -> C++ classes (server, client, classes for populating, serializing, retrieving request and response types.)
 
-service Greeter {
+service MessageSender {
     // Method of a service
-    rpc SayHello (HelloRequest) returns (HelloReply) {}
+    rpc SendNewOrderSingleLimit (OrderSingleLimit) returns (TradingOrderResponse) {}
+    rpc SendNewOrderSingleMarket (OrderSingleMarket) returns (TradingOrderResponse) {}
+    rpc SendNewOrderSingleStopLimit (OrderSingleStopLimit) returns (TradingOrderResponse) {}
+
+    rpc SendOrderStatusRequest (OrderStatusRequest) returns (InfoResponse) {}
+    rpc SendOrderCancelRequest (OrderCancelRequest) returns (Empty) {}
   }
   
-  // Definition of parameters.
-  message HelloRequest {
-    string name = 1;
+  //Responses
+  message TradingOrderResponse {
+    optional string OrderID = 1;
+  }
+
+  message InfoResponse {
+    optional string OrderID = 1;
+  }
+
+  message Empty{}
+  
+  //New Orders
+  message OrderSingleLimit {
+    string Symbol = 1;
+    int32 Side = 2;
+    float Price = 3;
+    float OrderQty = 4;
+    int32 TimeInForce = 5;
+  }
+
+  message OrderSingleMarket {
+    string Symbol = 1;
+    int32 Side = 2;
+    float OrderQty = 4;
+  }
+
+  message OrderSingleStopLimit {
+    string Symbol = 1;
+    int32 Side = 2;
+    float Price = 3;
+    float OrderQty = 4;
+    float StopPx = 5;
+  }
+
+  message OrderStatusRequest {
+    string OrderID = 1;
+    string Symbol = 2;
+  }
+
+  message OrderCancelRequest {
+    string OrigClOrdID = 1;
+    string Symbol = 2;
+    string Text = 3;
   }
   
-  message HelloReply {
-    string message = 1;
-  }
