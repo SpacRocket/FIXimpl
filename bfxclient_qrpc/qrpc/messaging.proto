@@ -1,0 +1,16 @@
+syntax = "proto3";
+//proto -> C++ classes (server, client, classes for populating, serializing, retrieving request and response types.)
+
+service Greeter {
+    // Method of a service
+    rpc SayHello (HelloRequest) returns (HelloReply) {}
+  }
+  
+  // Definition of parameters.
+  message HelloRequest {
+    string name = 1;
+  }
+  
+  message HelloReply {
+    string message = 1;
+  }
