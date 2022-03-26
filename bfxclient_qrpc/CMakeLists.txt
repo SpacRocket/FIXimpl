@@ -19,6 +19,7 @@ target_link_libraries(BfxClientQRpc
 target_include_directories(BfxClientQRpc
     PUBLIC include
     PUBLIC ${PROJECT_SOURCE_DIR}/grpc/gen
+    PUBLIC gRPC::grpc++
     PUBLIC Quickfix::Quickfix
     PUBLIC BfxApplication
     PRIVATE BfxClientAbstract
