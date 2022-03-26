@@ -1,3 +1,4 @@
+#pragma once
 #include "BfxApplication.hpp"
 
 namespace FIX {

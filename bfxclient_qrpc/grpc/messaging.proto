@@ -1,5 +1,4 @@
 syntax = "proto3";
-//proto -> C++ classes (server, client, classes for populating, serializing, retrieving request and response types.)
 
 service MessageSender {
     // Method of a service

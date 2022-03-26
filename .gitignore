@@ -16,3 +16,4 @@ tmp/
 cmake-build-debug/
 log/
 build/
+gen/
