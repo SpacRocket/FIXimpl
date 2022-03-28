@@ -25,7 +25,7 @@ target_include_directories(BfxClientQRpc
     PRIVATE BfxClientAbstract
     )
 
-target_sources(BfxClientQRpc PRIVATE "./src/BfxApplicaitonQRpc.cpp"
+target_sources(BfxClientQRpc PUBLIC "./src/BfxApplicaitonQRpc.cpp"
                              PUBLIC "./src/BfxClientQRpc.cpp"
                              PUBLIC "./src/BfxQRpcEntryPoint.cpp"
                              PUBLIC "./src/BfxQRpcServer.cpp"

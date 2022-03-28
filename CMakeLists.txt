@@ -14,7 +14,6 @@ if (CMAKE_CXX_CPPCHECK)
     )
 endif()
 
-add_subdirectory(bfxclient_cli)
 add_subdirectory(bfxclient_qrpc)
 add_subdirectory(bfxclient_abstract)
 add_subdirectory(bfxapplication)

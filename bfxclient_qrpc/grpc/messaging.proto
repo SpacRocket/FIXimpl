@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 service MessageSender {
-    // Method of a service
     rpc SendNewOrderSingleLimit (OrderSingleLimit) returns (TradingOrderResponse) {}
     rpc SendNewOrderSingleMarket (OrderSingleMarket) returns (TradingOrderResponse) {}
     rpc SendNewOrderSingleStopLimit (OrderSingleStopLimit) returns (TradingOrderResponse) {}
