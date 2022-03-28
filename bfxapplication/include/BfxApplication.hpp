@@ -27,8 +27,6 @@
 
 #include "data_structures/OrderTableModel.hpp"
 
-// TODO: Implement Failed and Succesful details for NewOrderSingle.
-
 namespace FIX {
 /**
  * @brief Collection of callbacks for session/messages.
