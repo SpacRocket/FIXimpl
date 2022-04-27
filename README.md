@@ -1,5 +1,3 @@
-# ba-thesis
-
 ## Overview
 QuickFix client for coinbase's FIX API.
 
